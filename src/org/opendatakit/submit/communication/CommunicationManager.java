@@ -7,6 +7,7 @@ import org.opendatakit.submit.exceptions.MessageException;
 import org.opendatakit.submit.exceptions.MismatchException;
 import org.opendatakit.submit.exceptions.SyncException;
 import org.opendatakit.submit.flags.Radio;
+import org.opendatakit.submit.flags.SyncType;
 import org.opendatakit.submit.interfaces.MessageInterface;
 import org.opendatakit.submit.interfaces.SyncInterface;
 
@@ -16,40 +17,6 @@ import android.os.IBinder;
 
 public class CommunicationManager extends Service implements MessageInterface, SyncInterface {
 
-	@Override
-	public Object create(String uri, String pathname) throws IOException,
-			SyncException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object download(String uri, String pathname) throws IOException,
-			SyncException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object delete(String uri, String pathname) throws IOException,
-			SyncException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object sync(String uri, String pathname) throws IOException,
-			SyncException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void send(String msg, String dest) throws IOException,
-			MessageException {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -64,6 +31,41 @@ public class CommunicationManager extends Service implements MessageInterface, S
 	}
 
 	void updateRadios(List<Radio> radios) {
+		
+	}
+
+	@Override
+	public Object create(SyncType st, String uri, String pathname)
+			throws IOException, SyncException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object download(SyncType st, String uri, String pathname)
+			throws IOException, SyncException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object delete(SyncType st, String uri, String pathname)
+			throws IOException, SyncException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object sync(SyncType st, String uri, String pathname)
+			throws IOException, SyncException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void send(String dest, String msg) throws IOException,
+			MessageException {
+		// TODO Auto-generated method stub
 		
 	}
 }

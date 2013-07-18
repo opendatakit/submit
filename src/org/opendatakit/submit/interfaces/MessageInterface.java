@@ -22,6 +22,6 @@ public interface MessageInterface {
 	 * @throws IOException
 	 * @throws MessageException
 	 */
-	void send( String msg, String dest ) throws IOException, MessageException;
+	void send( String dest, String msg ) throws IOException, MessageException;
 	
 }

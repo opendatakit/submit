@@ -2,6 +2,7 @@ package org.opendatakit.submit.interfaces;
 
 import java.io.IOException;
 import org.opendatakit.submit.exceptions.SyncException;
+import org.opendatakit.submit.flags.SyncType;
 
 /**
  * SyncInterface
@@ -24,7 +25,7 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object create( String uri, String pathname ) throws IOException, SyncException;
+	Object create( SyncType st, String uri, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a new Sync object needs to be downloaded
@@ -37,7 +38,7 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object download( String uri, String pathname ) throws IOException, SyncException;
+	Object download( SyncType st, String uri, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be removed from 
@@ -50,7 +51,7 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object delete( String uri, String pathname ) throws IOException, SyncException;
+	Object delete( SyncType st, String uri, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be synchronized
@@ -63,6 +64,6 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object sync( String uri, String pathname ) throws IOException, SyncException;
+	Object sync( SyncType st, String uri, String pathname ) throws IOException, SyncException;
 	
 }
