@@ -1,9 +1,9 @@
-package org.opendatakit.submit.client;
+package org.opendatakit.submit.route;
 
 import org.opendatakit.submit.flags.MessageType;
 import org.opendatakit.submit.flags.SyncType;
 
-interface ClientRemote {
+interface RouteRemote{
 
 	String send( String uri, String pathname );
 	String create( inout SyncType st, String uri, String pathname );

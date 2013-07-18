@@ -63,9 +63,9 @@ public class CommunicationManager extends Service implements MessageInterface, S
 	}
 
 	@Override
-	public void send(String dest, String msg) throws IOException,
+	public Object send(String dest, String msg) throws IOException,
 			MessageException {
 		// TODO Auto-generated method stub
-		
+		return null;
 	}
 }

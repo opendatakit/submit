@@ -158,6 +158,24 @@ reply.writeInt(0);
 }
 return true;
 }
+case TRANSACTION_onQueue:
+{
+data.enforceInterface(DESCRIPTOR);
+java.lang.String _arg0;
+_arg0 = data.readString();
+boolean _result = this.onQueue(_arg0);
+reply.writeNoException();
+reply.writeInt(((_result)?(1):(0)));
+return true;
+}
+case TRANSACTION_queueSize:
+{
+data.enforceInterface(DESCRIPTOR);
+int _result = this.queueSize();
+reply.writeNoException();
+reply.writeInt(_result);
+return true;
+}
 }
 return super.onTransact(code, data, reply, flags);
 }
@@ -311,16 +329,55 @@ _data.recycle();
 }
 return _result;
 }
+@Override public boolean onQueue(java.lang.String uid) throws android.os.RemoteException
+{
+android.os.Parcel _data = android.os.Parcel.obtain();
+android.os.Parcel _reply = android.os.Parcel.obtain();
+boolean _result;
+try {
+_data.writeInterfaceToken(DESCRIPTOR);
+_data.writeString(uid);
+mRemote.transact(Stub.TRANSACTION_onQueue, _data, _reply, 0);
+_reply.readException();
+_result = (0!=_reply.readInt());
+}
+finally {
+_reply.recycle();
+_data.recycle();
+}
+return _result;
+}
+@Override public int queueSize() throws android.os.RemoteException
+{
+android.os.Parcel _data = android.os.Parcel.obtain();
+android.os.Parcel _reply = android.os.Parcel.obtain();
+int _result;
+try {
+_data.writeInterfaceToken(DESCRIPTOR);
+mRemote.transact(Stub.TRANSACTION_queueSize, _data, _reply, 0);
+_reply.readException();
+_result = _reply.readInt();
+}
+finally {
+_reply.recycle();
+_data.recycle();
+}
+return _result;
+}
 }
 static final int TRANSACTION_send = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
 static final int TRANSACTION_create = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
 static final int TRANSACTION_download = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
 static final int TRANSACTION_sync = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
 static final int TRANSACTION_delete = (android.os.IBinder.FIRST_CALL_TRANSACTION + 4);
+static final int TRANSACTION_onQueue = (android.os.IBinder.FIRST_CALL_TRANSACTION + 5);
+static final int TRANSACTION_queueSize = (android.os.IBinder.FIRST_CALL_TRANSACTION + 6);
 }
 public java.lang.String send(java.lang.String uri, java.lang.String pathname) throws android.os.RemoteException;
 public java.lang.String create(org.opendatakit.submit.flags.SyncType st, java.lang.String uri, java.lang.String pathname) throws android.os.RemoteException;
 public java.lang.String download(org.opendatakit.submit.flags.SyncType st, java.lang.String uri, java.lang.String pathname) throws android.os.RemoteException;
 public java.lang.String sync(org.opendatakit.submit.flags.SyncType st, java.lang.String uri, java.lang.String pathname) throws android.os.RemoteException;
 public java.lang.String delete(org.opendatakit.submit.flags.SyncType st, java.lang.String uri, java.lang.String pathname) throws android.os.RemoteException;
+public boolean onQueue(java.lang.String uid) throws android.os.RemoteException;
+public int queueSize() throws android.os.RemoteException;
 }

@@ -17,7 +17,7 @@ public interface SyncInterface {
 	/**
 	 * When a new Sync object is created and needs to 
 	 * be uploaded and "created" across devices.
-	 * @param uri
+	 * @param dest
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
@@ -25,12 +25,12 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object create( SyncType st, String uri, String pathname ) throws IOException, SyncException;
+	Object create( SyncType st, String dest, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a new Sync object needs to be downloaded
 	 * from another device or server.
-	 * @param uri
+	 * @param dest
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
@@ -38,12 +38,12 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object download( SyncType st, String uri, String pathname ) throws IOException, SyncException;
+	Object download( SyncType st, String dest, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be removed from 
 	 * other devices and servers.
-	 * @param uri
+	 * @param dest
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
@@ -51,7 +51,7 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object delete( SyncType st, String uri, String pathname ) throws IOException, SyncException;
+	Object delete( SyncType st, String dest, String pathname ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be synchronized
@@ -64,6 +64,6 @@ public interface SyncInterface {
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object sync( SyncType st, String uri, String pathname ) throws IOException, SyncException;
+	Object sync( SyncType st, String dest, String pathname ) throws IOException, SyncException;
 	
 }
