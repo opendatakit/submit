@@ -1,8 +1,10 @@
-package org.opendatakit.submit.route;
+package org.opendatakit.submit.scheduling;
 
 import java.io.IOException;
 import java.util.LinkedList;
 
+import org.opendatakit.submit.route.QueuedObject;
+import org.opendatakit.submit.scheduling.ClientRemote;
 import org.opendatakit.submit.exceptions.MessageException;
 import org.opendatakit.submit.exceptions.SyncException;
 import org.opendatakit.submit.flags.SyncDirection;
@@ -12,16 +14,15 @@ import org.opendatakit.submit.interfaces.SyncInterface;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-public class RoutingService extends Service implements MessageInterface, SyncInterface {
+public class SubmitService extends Service implements MessageInterface, SyncInterface{
 
 	private LinkedList<QueuedObject> mSubmitQueue = null;
 	
-	private final RouteRemote.Stub mBinder = new RouteRemote.Stub() {
-
+	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
+		
 		@Override
 		public String send(String uri, String pathname) throws RemoteException {
 			// TODO Auto-generated method stub
@@ -61,38 +62,14 @@ public class RoutingService extends Service implements MessageInterface, SyncInt
 		public int queueSize() throws RemoteException {
 			return this.queueSize();
 		}
-		
 	};
-
-	/*
-	 * Service methods
-	 */
+	
 	@Override
 	public IBinder onBind(Intent intent) {
-		
+		// TODO Auto-generated method stub
 		return mBinder;
 	}
-	
-	@Override
-	public void onCreate() {
-		
-	}
-	
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		
-		
-		
-		// Run this until it is explicitly stopped
-		return START_STICKY;
-		
-	}
-	
-	@Override
-    public void onDestroy() {
-        // TODO
-    }
-	
+
 	/*
 	 * Sync and Message methods
 	 */
@@ -137,7 +114,7 @@ public class RoutingService extends Service implements MessageInterface, SyncInt
 	}
 	
 	/*
-	 * Private methods
+	 * private methods
 	 */
 	private boolean onQueue(String uid) {
 		for (QueuedObject qo : mSubmitQueue) {
@@ -150,6 +127,49 @@ public class RoutingService extends Service implements MessageInterface, SyncInt
 	
 	private int queueSize() {
 		return mSubmitQueue.size();
+	}
+	
+	/*
+	 * Runnables
+	 */
+	private Runnable sendToManager = new Runnable() {
+
+		@Override
+		public void run() {
+			try {
+				QueuedObject top = mSubmitQueue.getFirst();
+				switch(top.getType()) {
+					case MESSAGE:
+						// TODO send to MessageManager
+					case SYNC:
+						// TODO send to SyncManager
+					default:
+				
+				}
+			
+			} catch(NullPointerException npe) {
+				// TODO
+			} 
+		}
+		
+	};
+	
+	/*
+	 * Routing thread
+	 */
+	public static Thread routeInBackgroundThread(final Runnable runnable) {
+		final Thread t = new Thread() {
+			@Override
+			public void run() {
+				try {
+					runnable.run();
+				} finally {
+					
+				}
+			}
+		};
+		t.start();
+		return t;
 	}
 
 }

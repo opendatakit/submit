@@ -2,22 +2,29 @@ package org.opendatakit.submit.route;
 
 import org.opendatakit.submit.flags.SyncDirection;
 import org.opendatakit.submit.flags.SyncType;
+import org.opendatakit.submit.flags.Types;
 
+/**
+ * QueuedObject
+ * Class representing an application's submission
+ * with enough metadata to use so that the CommunicationManager
+ * can direct the appropriate API to handle it.
+ * 
+ * @author mvigil
+ *
+ */
 public class QueuedObject {
 	
 	/* Unique ID */
 	private String mUid = null;
 
 	/* Metadata for APIs*/
+	private Types mType = null;
 	private String mDest = null;
 	private String mPayload = null;
 	private SyncType mSync = null;
 	private SyncDirection mDir = null;
 	
-	/**
-	 * Empty constructor
-	 */
-	public QueuedObject(){};
 	
 	/**
 	 * Constructor for Message QueuedObjects
@@ -29,6 +36,7 @@ public class QueuedObject {
 		mUid = makeUid(dest, payload);
 		mDest = dest;
 		mPayload = payload;
+		mType = Types.MESSAGE;
 		
 	}
 	
@@ -46,6 +54,7 @@ public class QueuedObject {
 		mPayload = payload;
 		mSync = st;
 		mDir = sd;
+		mType = Types.SYNC;
 		
 	}
 	
@@ -92,6 +101,19 @@ public class QueuedObject {
 		return mDir;
 	}
 	
+	/**
+	 * Get the Types if QueuedObject
+	 * @return
+	 */
+	public Types getType() {
+		switch(mType) {
+		case SYNC:
+			return Types.SYNC;
+		default:
+			break;	
+		}
+		return Types.MESSAGE;
+	}
 	/*
 	 * TODO
 	 * This will need to be less hackish one day
@@ -100,4 +122,6 @@ public class QueuedObject {
 		long time = System.currentTimeMillis();
 		return a+b+Long.toString(time);
 	}
+	
+
 }

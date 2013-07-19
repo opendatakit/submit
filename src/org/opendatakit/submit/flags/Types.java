@@ -8,5 +8,5 @@ package org.opendatakit.submit.flags;
  */
 public enum Types {
 	MESSAGE, // Messages that are not committed to memory
-	SYNC // Stored data that must be synchronized across devices and servers
+	SYNC; // Stored data that must be synchronized across devices and servers
 }
