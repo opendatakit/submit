@@ -8,6 +8,7 @@ import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.route.QueuedObject;
+import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.app.Service;
 import android.content.Intent;
@@ -17,17 +18,27 @@ public class SyncManager implements CommunicationInterface {
 
 	private RadioAPIMap mRAMap = null;
 	private ArrayList<API> mAPIList = null;
+	private SubmitAPI mSubmitAPI = null;
 	
 	public SyncManager() {
 		mRAMap = new RadioAPIMap();
+		mSubmitAPI = new SubmitAPI();
 	}
 	
+	/**
+	 * executeTask
+	 * Given a QueuedObject and the active radio,
+	 * figure out which API to send the command over
+	 * and go ahead and call it.
+	 * @param queuedobj
+	 * @param radio
+	 */
 	@Override
 	public void executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
 		if (mRAMap.keyExists(radio)) {
 			// If the activated radio is valid per our schema
-			// get the list of associated APIswell
+			// get the list of associated APIs
 			mAPIList = mRAMap.getValue(radio);
 		} else {
 			// else, null list of APIs
@@ -43,6 +54,7 @@ public class SyncManager implements CommunicationInterface {
 			case ODKv2:
 				switch(queuedobj.getDirection()) {
 					case CREATE:
+						
 					case DOWNLOAD:
 					case SYNC:
 					case DELETE:

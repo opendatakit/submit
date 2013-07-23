@@ -1,20 +1,28 @@
 package org.opendatakit.submit.communication;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.opendatakit.submit.exceptions.CommunicationException;
+import org.opendatakit.submit.exceptions.MessageException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.route.QueuedObject;
 
+import org.opendatakit.submit.stubapi.SubmitAPI;
+
+import android.util.Log;
+
 public class MessageManager implements CommunicationInterface {
 
 	private RadioAPIMap mRAMap = null;
 	private ArrayList<API> mAPIList = null;
+	private SubmitAPI mSubmitAPI = null;
 	
 	public MessageManager() {
 		mRAMap = new RadioAPIMap();
+		mSubmitAPI = new SubmitAPI();
 		
 	}
 
@@ -40,7 +48,13 @@ public class MessageManager implements CommunicationInterface {
 			case SMS:
 			case GCM:
 			default:
-				// TODO Call Stub module
+				try {
+					mSubmitAPI.send(queuedobj.getDest(), queuedobj.getPayload());
+				} catch(MessageException me) {
+					Log.e("MessageManager", me.getMessage());
+				} catch(IOException ioe) {
+					Log.e("MessageManager", ioe.getMessage());
+				}
 			}
 		}
 	}
