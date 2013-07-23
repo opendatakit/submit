@@ -1,6 +1,5 @@
 package org.opendatakit.submit.communication;
 
-
 import java.util.ArrayList;
 
 import org.opendatakit.submit.exceptions.CommunicationException;
@@ -9,19 +8,16 @@ import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.route.QueuedObject;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
-
-public class SyncManager implements CommunicationInterface {
+public class MessageManager implements CommunicationInterface {
 
 	private RadioAPIMap mRAMap = null;
 	private ArrayList<API> mAPIList = null;
 	
-	public SyncManager() {
+	public MessageManager() {
 		mRAMap = new RadioAPIMap();
+		
 	}
-	
+
 	@Override
 	public void executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
@@ -40,30 +36,15 @@ public class SyncManager implements CommunicationInterface {
 		if (mAPIList != null) {
 			API api = whichAPI(mAPIList, queuedobj);
 			switch(api) {
-			case ODKv2:
-				switch(queuedobj.getDirection()) {
-					case CREATE:
-					case DOWNLOAD:
-					case SYNC:
-					case DELETE:
-					default:
-						// TODO
-				}
 			case STUB:
+			case SMS:
+			case GCM:
 			default:
-				switch(queuedobj.getDirection()) {
-				case CREATE:
-				case DOWNLOAD:
-				case SYNC:
-				case DELETE:
-				default:
-					// TODO
-				}
+				// TODO Call Stub module
 			}
 		}
-		
 	}
-	
+
 	/**
 	 * Select the best API given the current conditions
 	 * This is going to be updated based on certain flags
@@ -77,4 +58,6 @@ public class SyncManager implements CommunicationInterface {
 		// For now, return STUB API no matter what
 		return API.STUB;
 	}
+	
+	
 }
