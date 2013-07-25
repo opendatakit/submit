@@ -6,8 +6,12 @@ import java.util.LinkedList;
 
 import org.opendatakit.submit.route.QueuedObject;
 import org.opendatakit.submit.scheduling.ClientRemote;
+import org.opendatakit.submit.communication.MessageManager;
+import org.opendatakit.submit.communication.SyncManager;
+import org.opendatakit.submit.exceptions.CommunicationException;
 import org.opendatakit.submit.exceptions.MessageException;
 import org.opendatakit.submit.exceptions.SyncException;
+import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.flags.SyncDirection;
 import org.opendatakit.submit.flags.SyncType;
@@ -27,16 +31,18 @@ import android.util.Log;
 
 public class SubmitService extends Service implements MessageInterface, SyncInterface{
 
+	private static final String TAG = "SubmitService";
 	private LinkedList<QueuedObject> mSubmitQueue = null;
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
+	private Thread mRoutingThread;
 	
+	// TODO Consider moving this to another class and importing it...just a thought.
 	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
 		
 		@Override
-		public String send(String uri, String pathname) throws RemoteException {
-			// TODO Auto-generated method stub
-			return null;
+		public String send(String dest, String payload) throws RemoteException {
+			return this.send(dest, payload);
 		}
 
 		@Override
@@ -74,15 +80,27 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		}
 	};
 	
+	/*
+	 * Service methodss
+	 */
+	
 	@Override
 	public void onCreate() {
-		mSubmitQueue = new LinkedList<QueuedObject>();
-		// TODO Start thread
+		
+		// Does the SubmitQueue exist?
+		if (mSubmitQueue == null) {
+			mSubmitQueue = new LinkedList<QueuedObject>();
+		}
+		// Check to see if the routing thread is already running
+		mRoutingThread.getState();
+		
 	}
+	
+
 	
 	@Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("LocalService", "Received start id " + startId + ": " + intent);
+        Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -95,6 +113,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	
 	@Override
 	public IBinder onBind(Intent intent) {
+		/* TODO Register application here */
 		return mBinder;
 	}
 
@@ -157,6 +176,12 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		return mSubmitQueue.size();
 	}
 	
+	private void routeRequests() {
+		Log.i(TAG, "Starting the RouterThread to service the SubmitQueue.");
+		mRoutingThread = routeInBackgroundThread(sendToManager);
+		mRoutingThread.start();
+	}
+	
 	/*
 	 * Runnables
 	 */
@@ -171,22 +196,60 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 
 		@Override
 		public void run() {
-			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute forcish, but it will do for the moment
+			MessageManager msgmang = new MessageManager();
+			SyncManager syncmang = new SyncManager();
+			// While there are submission requests in the Queue, service the queue
+			// with appropriate calls to executeTask() from the MessageManager or SyncManager
+			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
+				CommunicationState state = null;
 				try {
 					QueuedObject top = mSubmitQueue.getFirst();
 					switch (top.getType()) {
 					case MESSAGE:
-						// TODO send to MessageManager
+						// This is a Message object
+						try {
+							// TODO see if they want to give "job offer" to peers
+							state = (CommunicationState) msgmang.executeTask(top, mActiveRadio);
+							break;
+						} catch (CommunicationException e) {
+							Log.e(TAG, e.getMessage());
+							throw new NullPointerException();
+						} // try
 					case SYNC:
-						// TODO send to SyncManager
+						// This is a Sync object
+						try {
+							// TODO see if they want to give "job offer" to peers
+							state = (CommunicationState) syncmang.executeTask(top, mActiveRadio);
+							break;
+						} catch (CommunicationException e) {
+							Log.e(TAG, e.getMessage());
+							throw new NullPointerException();
+						} // try
 					default:
-
-					}
+						throw new NullPointerException();
+					} // switch(Type)
 
 				} catch (NullPointerException npe) {
-					// TODO
-				}
-			}
+					Log.e(TAG, npe.getMessage());
+					continue; // Consider throwing an Error return here
+				} // try
+				
+				switch(state) {
+				// TODO As of now, there is no policy such a sa "3 strike" policy to help drain the 
+				// queue in case of bad requests. Think about the policy we want implemented here.
+				// This may involve an extra piece of member data to QueuedObject
+					case SUCCESS:
+						// The communication request has been
+						// successfully submitted and completed
+						mSubmitQueue.removeFirst();
+						break;
+					case FAILURE: 
+					case IN_PROGRESS:
+					case UNAVAILABLE:
+					default:
+						break;
+				} // switch(state)
+			} // which
 		}
 		
 	};

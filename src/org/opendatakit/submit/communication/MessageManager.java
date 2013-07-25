@@ -27,7 +27,7 @@ public class MessageManager implements CommunicationInterface {
 	}
 
 	@Override
-	public void executeTask(QueuedObject queuedobj, Radio radio)
+	public Object executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
 		if (mRAMap.keyExists(radio)) {
 			// If the activated radio is valid per our schema
@@ -49,7 +49,7 @@ public class MessageManager implements CommunicationInterface {
 			case GCM:
 			default:
 				try {
-					mSubmitAPI.send(queuedobj.getDest(), queuedobj.getPayload());
+					return mSubmitAPI.send(queuedobj.getDest(), queuedobj.getPayload());
 				} catch(MessageException me) {
 					Log.e("MessageManager", me.getMessage());
 				} catch(IOException ioe) {
@@ -57,6 +57,7 @@ public class MessageManager implements CommunicationInterface {
 				}
 			}
 		}
+		return null;
 	}
 
 	/**

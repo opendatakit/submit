@@ -1,9 +1,12 @@
 package org.opendatakit.submit.communication;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.opendatakit.submit.exceptions.CommunicationException;
+import org.opendatakit.submit.exceptions.MessageException;
+import org.opendatakit.submit.exceptions.SyncException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.interfaces.CommunicationInterface;
@@ -13,6 +16,7 @@ import org.opendatakit.submit.stubapi.SubmitAPI;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 public class SyncManager implements CommunicationInterface {
 
@@ -34,7 +38,7 @@ public class SyncManager implements CommunicationInterface {
 	 * @param radio
 	 */
 	@Override
-	public void executeTask(QueuedObject queuedobj, Radio radio)
+	public Object executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
 		if (mRAMap.keyExists(radio)) {
 			// If the activated radio is valid per our schema
@@ -53,27 +57,62 @@ public class SyncManager implements CommunicationInterface {
 			switch(api) {
 			case ODKv2:
 				switch(queuedobj.getDirection()) {
-					case CREATE:
-						
-					case DOWNLOAD:
-					case SYNC:
-					case DELETE:
-					default:
-						// TODO
-				}
-			case STUB:
-			default:
-				switch(queuedobj.getDirection()) {
+				
 				case CREATE:
 				case DOWNLOAD:
 				case SYNC:
 				case DELETE:
 				default:
 					// TODO
+					break;
+				}
+			case STUB:
+			default:
+				switch (queuedobj.getDirection()) {
+				case CREATE:
+					try {
+						return mSubmitAPI.create(queuedobj.getSyncType(),
+								queuedobj.getDest(), queuedobj.getPayload());
+					} catch (SyncException se) {
+						Log.e("SyncManager", se.getMessage());
+					} catch (IOException ioe) {
+						Log.e("SyncManager", ioe.getMessage());
+					}
+
+				case DOWNLOAD:
+					try {
+						return mSubmitAPI.download(queuedobj.getSyncType(),
+								queuedobj.getDest(), queuedobj.getPayload());
+					} catch (SyncException se) {
+						Log.e("SyncManager", se.getMessage());
+					} catch (IOException ioe) {
+						Log.e("SyncManager", ioe.getMessage());
+					}
+				case SYNC:
+					try {
+						return mSubmitAPI.sync(queuedobj.getSyncType(),
+								queuedobj.getDest(), queuedobj.getPayload());
+					} catch (SyncException se) {
+						Log.e("SyncManager", se.getMessage());
+					} catch (IOException ioe) {
+						Log.e("SyncManager", ioe.getMessage());
+					}
+				case DELETE:
+					try {
+						return mSubmitAPI.delete(queuedobj.getSyncType(),
+								queuedobj.getDest(), queuedobj.getPayload());
+					} catch (SyncException se) {
+						Log.e("SyncManager", se.getMessage());
+					} catch (IOException ioe) {
+						Log.e("SyncManager", ioe.getMessage());
+					}
+				default:
+					break;
+
 				}
 			}
 		}
-		
+		return null;
 	}
 	
 	/**

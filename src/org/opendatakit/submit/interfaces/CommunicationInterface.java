@@ -8,5 +8,5 @@ import org.opendatakit.submit.route.QueuedObject;
 
 public interface CommunicationInterface {
 
-	void executeTask(QueuedObject queuedobj, Radio radio) throws CommunicationException;
+	Object executeTask(QueuedObject queuedobj, Radio radio) throws CommunicationException;
 }

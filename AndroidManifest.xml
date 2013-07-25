@@ -22,6 +22,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name="org.opendatakit.submit.scheduling.SubmitService"
+            android:process="SubmitService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.opendatakit.submit.scheduling.ClientRemote"></action>
+                <action android:name="org.opendatakit.submit.scheduling.REMOTE_SERVICE"></action>
+            </intent-filter>
+            
+            
+        </service>
     </application>
 
 </manifest>
