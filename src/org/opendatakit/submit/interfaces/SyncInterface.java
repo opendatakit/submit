@@ -21,11 +21,13 @@ public interface SyncInterface {
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
+	 * @param uid
+	 * 			Application uid
 	 * @return
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object create( SyncType st, String dest, String pathname ) throws IOException, SyncException;
+	Object create( SyncType st, String dest, String pathname, String uid ) throws IOException, SyncException;
 	
 	/**
 	 * When a new Sync object needs to be downloaded
@@ -34,11 +36,13 @@ public interface SyncInterface {
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
+	 * @param uid
+	 * 			Application uid
 	 * @return
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object download( SyncType st, String dest, String pathname ) throws IOException, SyncException;
+	Object download( SyncType st, String dest, String pathname, String uid ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be removed from 
@@ -47,11 +51,13 @@ public interface SyncInterface {
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
+	 * @param uid
+	 * 			Application uid
 	 * @return
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object delete( SyncType st, String dest, String pathname ) throws IOException, SyncException;
+	Object delete( SyncType st, String dest, String pathname, String uid ) throws IOException, SyncException;
 	
 	/**
 	 * When a Sync object needs to be synchronized
@@ -60,10 +66,12 @@ public interface SyncInterface {
 	 * 			String representing server URI
 	 * @param pathname
 	 * 			String representing path/to/data
+	 * @param uid
+	 * 			Application uid
 	 * @return
 	 * @throws IOException
 	 * @throws SyncException
 	 */
-	Object sync( SyncType st, String dest, String pathname ) throws IOException, SyncException;
+	Object sync( SyncType st, String dest, String pathname, String uid ) throws IOException, SyncException;
 	
 }

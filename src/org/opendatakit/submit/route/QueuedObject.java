@@ -31,9 +31,9 @@ public class QueuedObject {
 	 * @param dest
 	 * @param payload
 	 */
-	public QueuedObject( String dest, String payload ) {
+	public QueuedObject( String dest, String payload, String uid ) {
 		
-		mUid = makeUid(dest, payload);
+		mUid = uid;
 		mDest = dest;
 		mPayload = payload;
 		mType = Types.MESSAGE;
@@ -47,9 +47,9 @@ public class QueuedObject {
 	 * @param dest
 	 * @param payload
 	 */
-	public QueuedObject( SyncType st, SyncDirection sd, String dest, String payload ) {
+	public QueuedObject( SyncType st, SyncDirection sd, String dest, String payload, String uid ) {
 		
-		mUid = makeUid(dest, payload);
+		mUid = uid;
 		mDest = dest;
 		mPayload = payload;
 		mSync = st;
@@ -114,14 +114,4 @@ public class QueuedObject {
 		}
 		return Types.MESSAGE;
 	}
-	/*
-	 * TODO
-	 * This will need to be less hackish one day
-	 */
-	private String makeUid(String a, String b) {
-		long time = System.currentTimeMillis();
-		return a+b+Long.toString(time);
-	}
-	
-
 }

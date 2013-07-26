@@ -72,7 +72,7 @@ public class SyncManager implements CommunicationInterface {
 				case CREATE:
 					try {
 						return mSubmitAPI.create(queuedobj.getSyncType(),
-								queuedobj.getDest(), queuedobj.getPayload());
+								queuedobj.getDest(), queuedobj.getPayload(), queuedobj.getUid());
 					} catch (SyncException se) {
 						Log.e("SyncManager", se.getMessage());
 					} catch (IOException ioe) {
@@ -82,7 +82,7 @@ public class SyncManager implements CommunicationInterface {
 				case DOWNLOAD:
 					try {
 						return mSubmitAPI.download(queuedobj.getSyncType(),
-								queuedobj.getDest(), queuedobj.getPayload());
+								queuedobj.getDest(), queuedobj.getPayload(), queuedobj.getUid());
 					} catch (SyncException se) {
 						Log.e("SyncManager", se.getMessage());
 					} catch (IOException ioe) {
@@ -91,7 +91,7 @@ public class SyncManager implements CommunicationInterface {
 				case SYNC:
 					try {
 						return mSubmitAPI.sync(queuedobj.getSyncType(),
-								queuedobj.getDest(), queuedobj.getPayload());
+								queuedobj.getDest(), queuedobj.getPayload(), queuedobj.getUid());
 					} catch (SyncException se) {
 						Log.e("SyncManager", se.getMessage());
 					} catch (IOException ioe) {
@@ -100,7 +100,7 @@ public class SyncManager implements CommunicationInterface {
 				case DELETE:
 					try {
 						return mSubmitAPI.delete(queuedobj.getSyncType(),
-								queuedobj.getDest(), queuedobj.getPayload());
+								queuedobj.getDest(), queuedobj.getPayload(), queuedobj.getUid());
 					} catch (SyncException se) {
 						Log.e("SyncManager", se.getMessage());
 					} catch (IOException ioe) {

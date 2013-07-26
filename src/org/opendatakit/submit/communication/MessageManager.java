@@ -49,7 +49,7 @@ public class MessageManager implements CommunicationInterface {
 			case GCM:
 			default:
 				try {
-					return mSubmitAPI.send(queuedobj.getDest(), queuedobj.getPayload());
+					return mSubmitAPI.send(queuedobj.getDest(), queuedobj.getPayload(), queuedobj.getUid());
 				} catch(MessageException me) {
 					Log.e("MessageManager", me.getMessage());
 				} catch(IOException ioe) {

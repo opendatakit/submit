@@ -3,6 +3,8 @@ package org.opendatakit.submit.scheduling;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.opendatakit.submit.route.QueuedObject;
 import org.opendatakit.submit.scheduling.ClientRemote;
@@ -29,44 +31,51 @@ import android.os.RemoteException;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+/**
+ * Main coordination class in Submit.
+ * @author mvigil
+ *
+ */
 public class SubmitService extends Service implements MessageInterface, SyncInterface{
 
 	private static final String TAG = "SubmitService";
 	private LinkedList<QueuedObject> mSubmitQueue = null;
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
-	private Thread mRoutingThread;
+	private static final int NTHREADS = 10;
+	private static ExecutorService mExecutor = null;
+	
 	
 	// TODO Consider moving this to another class and importing it...just a thought.
 	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
 		
 		@Override
-		public String send(String dest, String payload) throws RemoteException {
-			return this.send(dest, payload);
+		public String send(String dest, String payload, String uid) throws RemoteException {
+			return this.send(dest, payload, uid);
 		}
 
 		@Override
-		public String create(SyncType st, String uri, String pathname)
+		public String create(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.create(st, uri, pathname);
+			return this.create(st, uri, pathname, uid);
 		}
 
 		@Override
-		public String download(SyncType st, String uri, String pathname)
+		public String download(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.download(st, uri, pathname);
+			return this.download(st, uri, pathname, uid);
 		}
 
 		@Override
-		public String sync(SyncType st, String uri, String pathname)
+		public String sync(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.sync(st, uri, pathname);
+			return this.sync(st, uri, pathname, uid);
 		}
 
 		@Override
-		public String delete(SyncType st, String uri, String pathname)
+		public String delete(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.delete(st, uri, pathname);
+			return this.delete(st, uri, pathname, uid);
 		}
 
 		@Override
@@ -81,7 +90,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	};
 	
 	/*
-	 * Service methodss
+	 * Service methods
 	 */
 	
 	@Override
@@ -91,9 +100,10 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		if (mSubmitQueue == null) {
 			mSubmitQueue = new LinkedList<QueuedObject>();
 		}
-		// Check to see if the routing thread is already running
-		mRoutingThread.getState();
-		
+		if (mExecutor == null) {
+			mExecutor = Executors.newFixedThreadPool(NTHREADS);
+		}
+		mExecutor.execute(sendToManager);
 	}
 	
 
@@ -108,7 +118,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	
 	@Override
     public void onDestroy() {
-        // TODO
+        mExecutor.shutdown();
     }
 	
 	@Override
@@ -121,41 +131,41 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	 * Sync and Message methods
 	 */
 	@Override
-	public String send(String dest, String msg) throws IOException,
+	public String send(String dest, String msg, String uid) throws IOException,
 			MessageException {
-		QueuedObject submit = new QueuedObject(dest, msg);
+		QueuedObject submit = new QueuedObject(dest, msg, uid);
 		mSubmitQueue.add(submit);
 		return submit.getUid();
 	}
 	
 	@Override
-	public Object create(SyncType st, String dest, String pathname)
+	public Object create(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, dest, pathname);
+		QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, dest, pathname, uid);
 		mSubmitQueue.add(submit);
 		return submit.getUid();
 	}
 
 	@Override
-	public Object download(SyncType st, String dest, String pathname)
+	public Object download(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, dest, pathname);
+		QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, dest, pathname, uid);
 		mSubmitQueue.add(submit);
 		return submit.getUid();
 	}
 
 	@Override
-	public Object delete(SyncType st, String dest, String pathname)
+	public Object delete(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, dest, pathname);
+		QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, dest, pathname, uid);
 		mSubmitQueue.add(submit);
 		return submit.getUid();
 	}
 
 	@Override
-	public Object sync(SyncType st, String dest, String pathname)
+	public Object sync(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, dest, pathname);
+		QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, dest, pathname, uid);
 		mSubmitQueue.add(submit);
 		return submit.getUid();
 	}
@@ -175,12 +185,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	private int queueSize() {
 		return mSubmitQueue.size();
 	}
-	
-	private void routeRequests() {
-		Log.i(TAG, "Starting the RouterThread to service the SubmitQueue.");
-		mRoutingThread = routeInBackgroundThread(sendToManager);
-		mRoutingThread.start();
-	}
+
 	
 	/*
 	 * Runnables
@@ -200,7 +205,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			SyncManager syncmang = new SyncManager();
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
+			while(mSubmitQueue!=null) { // TODO this is a bit brute force-ish, but it will do for the moment
 				CommunicationState state = null;
 				try {
 					QueuedObject top = mSubmitQueue.getFirst();
@@ -235,7 +240,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				} // try
 				
 				switch(state) {
-				// TODO As of now, there is no policy such a sa "3 strike" policy to help drain the 
+				// TODO As of now, there is no policy such a as a "3 strike" policy to help drain the 
 				// queue in case of bad requests. Think about the policy we want implemented here.
 				// This may involve an extra piece of member data to QueuedObject
 					case SUCCESS:
@@ -254,23 +259,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		
 	};
 	
-	/*
-	 * Routing thread
-	 */
-	public static Thread routeInBackgroundThread(final Runnable runnable) {
-		final Thread t = new Thread() {
-			@Override
-			public void run() {
-				try {
-					runnable.run();
-				} finally {
-					
-				}
-			}
-		};
-		t.start();
-		return t;
-	}
+
 	
 	/**
 	 * ChannelMonitor listens to see when Radio
