@@ -207,8 +207,10 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
 			while(mSubmitQueue!=null) { // TODO this is a bit brute force-ish, but it will do for the moment
 				CommunicationState state = null;
+				QueuedObject top = mSubmitQueue.getFirst();
+				Intent intent = new Intent();
+				intent.setAction(top.getUid());
 				try {
-					QueuedObject top = mSubmitQueue.getFirst();
 					switch (top.getType()) {
 					case MESSAGE:
 						// This is a Message object
@@ -247,11 +249,13 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 						// The communication request has been
 						// successfully submitted and completed
 						mSubmitQueue.removeFirst();
+						sendBroadcast(intent); 
 						break;
 					case FAILURE: 
 					case IN_PROGRESS:
 					case UNAVAILABLE:
 					default:
+						sendBroadcast(intent); 
 						break;
 				} // switch(state)
 			} // which

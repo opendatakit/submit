@@ -9,7 +9,11 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -17,6 +21,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
@@ -26,15 +31,46 @@ public class MainActivity extends Activity {
 	private PackageManager mManager = this.getPackageManager();
 	private List<ApplicationInfo> mAppInfo = mManager.getInstalledApplications(PackageManager.GET_META_DATA);
 	private int mUID = this.getApplication().getApplicationInfo().uid;
-	
+	private IntentFilter mFilter = new IntentFilter(Integer.toString(mUID));
+	private BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Toast.makeText(getApplicationContext(), "API triggered", Toast.LENGTH_SHORT);
+			
+		}
+		
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		/* Set up buttons */
+		setupView();
+		
+		/* Connect to SubmitService */
 		initConnection();
 		
+		/* Register BroadcastReceiver */
+		this.getApplicationContext().registerReceiver(myBroadcastReceiver, mFilter);
+	}
+
+	@Override
+	public void onDestroy() {
+		this.getApplicationContext().unbindService(mServiceCnxn);
+		this.getApplicationContext().unregisterReceiver(myBroadcastReceiver);
+	}
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+	
+	/* private methods */
+	void setupView() {
 		/*
 		 * Set up buttons
 		 */
@@ -112,15 +148,7 @@ public class MainActivity extends Activity {
 			}
 		});
 	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
 	
-	/* private methods */
 	void initConnection() {
 		/*
 		 * Bind to the SubmitService
@@ -141,6 +169,8 @@ public class MainActivity extends Activity {
 			}
 			
 		};
+		
+		
 		
 	}
 

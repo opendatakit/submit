@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: /Users/mvigil/ODK/workspace_devl/StubApp/src/org/opendatakit/submit/scheduling/ClientRemote.aidl
+ * Original file: /Users/mvigil/ODK/opendatakit.submit/StubApp/src/org/opendatakit/submit/scheduling/ClientRemote.aidl
  */
 package org.opendatakit.submit.scheduling;
 public interface ClientRemote extends android.os.IInterface
