@@ -1,6 +1,7 @@
 package org.opendatakit.submit.communication;
 
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import android.util.Log;
  *
  */
 public class RadioAPIMap {
-	private static final String PROP_FILE = "radio.properties";
+	private static final String PROP_FILE = "/Users/mvigil/ODK/opendatakit.submit/radio.properties"; // t
 	HashMap<Radio, ArrayList<API>> mAPIMap;
 
 	public RadioAPIMap() {
@@ -47,7 +48,10 @@ public class RadioAPIMap {
 		Properties prop = new Properties();
 		
 		try {
-			prop.load(new FileInputStream(PROP_FILE)); //TODO make private static final
+			
+			FileInputStream fis = new FileInputStream(PROP_FILE);
+			prop.load(fis); 
+			fis.close();
 			
 			Set<Entry<Object, Object>> set = prop.entrySet();
 			for(Entry<Object, Object> e : set) {
@@ -87,6 +91,8 @@ public class RadioAPIMap {
 			}
 		} catch (IOException e) {
 			Log.e("RadioAPIMap", e.getMessage());
+		} catch (NullPointerException npe) {
+			Log.e("RadioAPIMap", npe.getMessage());
 		}
 	}
 }

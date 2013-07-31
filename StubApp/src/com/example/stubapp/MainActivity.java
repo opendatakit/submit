@@ -26,24 +26,38 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	protected ClientRemote mService;
-	protected ServiceConnection mServiceCnxn = null;
+	protected ServiceConnection mServiceCnxn;
 	private static final String TAG = "MainActivity";
-	private PackageManager mManager = this.getPackageManager();
-	private List<ApplicationInfo> mAppInfo = mManager.getInstalledApplications(PackageManager.GET_META_DATA);
-	private int mUID = this.getApplication().getApplicationInfo().uid;
-	private IntentFilter mFilter = new IntentFilter(Integer.toString(mUID));
-	private BroadcastReceiver myBroadcastReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Toast.makeText(getApplicationContext(), "API triggered", Toast.LENGTH_SHORT);
-			
-		}
-		
-	};
+	private PackageManager mManager;
+	private List<ApplicationInfo> mAppInfo;
+	private int mUID;
+	private IntentFilter mFilter;
+	
+	private BroadcastReceiver myBroadcastReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		Log.i(TAG, "onCreate() MainActivity in StubApp");
+		
+		/* Set up private and protected vars */
+		mServiceCnxn = null;
+		mManager = this.getPackageManager();
+		mAppInfo = mManager.getInstalledApplications(PackageManager.GET_META_DATA);
+		mUID = this.getApplication().getApplicationInfo().uid;
+		mFilter = new IntentFilter();
+		mFilter.addAction(Integer.toString(mUID));
+		mFilter.addCategory(Intent.CATEGORY_DEFAULT);
+		myBroadcastReceiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Log.d(TAG, "onReceive triggered by SubmitService");
+				Toast.makeText(getApplicationContext(), "API triggered", Toast.LENGTH_SHORT).show();
+				
+			}
+			
+		};
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
@@ -52,6 +66,11 @@ public class MainActivity extends Activity {
 		
 		/* Connect to SubmitService */
 		initConnection();
+		if (mServiceCnxn != null) {
+			bindToSubmitService();
+		} else {
+			Log.e(TAG, "ServiceConnection is null!");
+		}
 		
 		/* Register BroadcastReceiver */
 		this.getApplicationContext().registerReceiver(myBroadcastReceiver, mFilter);
@@ -59,8 +78,9 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onDestroy() {
-		this.getApplicationContext().unbindService(mServiceCnxn);
+		Log.i(TAG, "onDestroy() MainActivity StubApp");
 		this.getApplicationContext().unregisterReceiver(myBroadcastReceiver);
+		this.getApplicationContext().unbindService(mServiceCnxn);
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -71,6 +91,7 @@ public class MainActivity extends Activity {
 	
 	/* private methods */
 	void setupView() {
+		Log.i(TAG, "Setting up buttons");
 		/*
 		 * Set up buttons
 		 */
@@ -88,9 +109,11 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				try {
-					mService.create(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					String state = null;
+					state = mService.create(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					Log.d(TAG, "State of SubmitAPI.create -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in create()");
+					Log.e(TAG, e.getMessage());
 				}
 
 			}
@@ -100,10 +123,12 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
+				String state = null;
 				try {
-					mService.download(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					state = mService.download(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					Log.d(TAG, "State of SubmitAPI.download -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in download()");
+					Log.e(TAG, e.getMessage());
 				}
 
 			}
@@ -113,10 +138,12 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
+				String state = null;
 				try {
-					mService.sync(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					state = mService.sync(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					Log.d(TAG, "State of SubmitAPI.sync -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in sync()");
+					Log.e(TAG, e.getMessage());
 				}
 
 			}
@@ -126,10 +153,12 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
+				String state = null;
 				try {
-					mService.delete(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					state = mService.delete(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					Log.d(TAG, "State of SubmitAPI.delete -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in delete()");
+					Log.e(TAG, e.getMessage());
 				}
 
 			}
@@ -139,39 +168,42 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
+				String state;
 				try {
-					mService.send("http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					state = mService.send("http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					Log.d(TAG, "State of SubmitAPI.send -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in send()");
+					Log.e(TAG, e.getMessage());
 				}
 
 			}
 		});
 	}
 	
-	void initConnection() {
-		/*
-		 * Bind to the SubmitService
-		 */
+	private void initConnection() {
+		Log.i(TAG, "Connecting to SubmitService...");
+		/* Define Service connection */
 		mServiceCnxn = new ServiceConnection() {
 
 			@Override
 			public void onServiceConnected(ComponentName name, IBinder service) {
 				mService = ClientRemote.Stub.asInterface((IBinder) service);	
-				Log.d("ClientRemote", "Binding is done - Service connected");
+				Log.i("ClientRemote", "Binding is done - Service connected");
 			}
 
 			@Override
 			public void onServiceDisconnected(ComponentName name) {
 				mService = null;
-				Log.d("ClientRemote", "Binding - Service disconnected");
-				
+				Log.i("ClientRemote", "Binding - Service disconnected");
 			}
 			
 		};
 		
-		
-		
+	}
+	
+	private void bindToSubmitService() {
+		Intent intent = new Intent("org.opendatakit.submit.scheduling.ClientRemote");
+		bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
 	}
 
 }

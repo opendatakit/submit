@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 
 import org.opendatakit.submit.route.QueuedObject;
 import org.opendatakit.submit.scheduling.ClientRemote;
+import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.communication.MessageManager;
 import org.opendatakit.submit.communication.SyncManager;
 import org.opendatakit.submit.exceptions.CommunicationException;
@@ -44,38 +45,101 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	public static Radio mActiveP2PRadio = null;
 	private static final int NTHREADS = 10;
 	private static ExecutorService mExecutor = null;
-	
+	private Runnable mRunnable;
+	private Thread mThread;
+	private SubmitAPI mSubApi;
 	
 	// TODO Consider moving this to another class and importing it...just a thought.
 	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
 		
 		@Override
 		public String send(String dest, String payload, String uid) throws RemoteException {
-			return this.send(dest, payload, uid);
+			CommunicationState state = null;
+			try {
+				state = (CommunicationState) mSubApi.send(dest, payload, uid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (MessageException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return getStringState(state, uid);
+			
+			//return this.send(dest, payload, uid);
 		}
 
 		@Override
 		public String create(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.create(st, uri, pathname, uid);
+			CommunicationState state = null;
+			try {
+				state = (CommunicationState) mSubApi.create(st, uri, pathname, uid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SyncException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return getStringState(state, uid);
+			//return this.create(st, uri, pathname, uid);
 		}
 
 		@Override
 		public String download(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.download(st, uri, pathname, uid);
+			CommunicationState state = null;
+			try {
+				state = (CommunicationState) mSubApi.download(st, uri, pathname, uid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SyncException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return getStringState(state, uid);
+			//return this.download(st, uri, pathname, uid);
 		}
 
 		@Override
 		public String sync(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.sync(st, uri, pathname, uid);
+			CommunicationState state = null;
+			try {
+				state = (CommunicationState) mSubApi.sync(st, uri, pathname, uid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SyncException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return getStringState(state, uid);
+			//return this.sync(st, uri, pathname, uid);
 		}
 
 		@Override
 		public String delete(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			return this.delete(st, uri, pathname, uid);
+			CommunicationState state = null;
+			try {
+				state = (CommunicationState) mSubApi.delete(st, uri, pathname, uid);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SyncException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			return getStringState(state, uid);
+			//return this.delete(st, uri, pathname, uid);
 		}
 
 		@Override
@@ -96,6 +160,10 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	@Override
 	public void onCreate() {
 		
+		Log.i(TAG, "onCreate() starting SubmitService");
+		mRunnable = new sendToManager();
+		mThread = new Thread(mRunnable);
+		mSubApi = new SubmitAPI();
 		// Does the SubmitQueue exist?
 		if (mSubmitQueue == null) {
 			mSubmitQueue = new LinkedList<QueuedObject>();
@@ -103,11 +171,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		if (mExecutor == null) {
 			mExecutor = Executors.newFixedThreadPool(NTHREADS);
 		}
-		mExecutor.execute(sendToManager);
+		//mExecutor.execute(mThread);
 	}
-	
 
-	
 	@Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
@@ -118,12 +184,13 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	
 	@Override
     public void onDestroy() {
+		Log.i(TAG, "Destroying SubmitService instance");
         mExecutor.shutdown();
     }
 	
 	@Override
 	public IBinder onBind(Intent intent) {
-		/* TODO Register application here */
+		Log.i(TAG, "Binding to SubmitService");
 		return mBinder;
 	}
 
@@ -135,6 +202,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			MessageException {
 		QueuedObject submit = new QueuedObject(dest, msg, uid);
 		mSubmitQueue.add(submit);
+		if (mExecutor.isTerminated()) {
+			mExecutor.submit(mThread);
+		}
 		return submit.getUid();
 	}
 	
@@ -143,6 +213,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			throws IOException, SyncException {
 		QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, dest, pathname, uid);
 		mSubmitQueue.add(submit);
+		if (mExecutor.isTerminated()) {
+			mExecutor.submit(mThread);
+		}
 		return submit.getUid();
 	}
 
@@ -151,6 +224,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			throws IOException, SyncException {
 		QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, dest, pathname, uid);
 		mSubmitQueue.add(submit);
+		if (mExecutor.isTerminated()) {
+			mExecutor.submit(mThread);
+		}
 		return submit.getUid();
 	}
 
@@ -159,6 +235,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			throws IOException, SyncException {
 		QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, dest, pathname, uid);
 		mSubmitQueue.add(submit);
+		if (mExecutor.isTerminated()) {
+			mExecutor.submit(mThread);
+		}
 		return submit.getUid();
 	}
 
@@ -167,6 +246,9 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 			throws IOException, SyncException {
 		QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, dest, pathname, uid);
 		mSubmitQueue.add(submit);
+		if (mExecutor.isTerminated()) {
+			mExecutor.submit(mThread);
+		}
 		return submit.getUid();
 	}
 	
@@ -186,6 +268,42 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		return mSubmitQueue.size();
 	}
 
+	/* For now this is used for debugging */
+	private String getStringState(CommunicationState state, String uid) {
+		Intent intent = new Intent();
+		intent.setAction(uid);
+		if (state == null) {
+			return null;
+		} else {
+			switch(state) {
+			case SUCCESS:
+				intent.putExtra("RESULT", "SUCCESS");
+				sendBroadcast(intent);
+				Log.i(TAG,"Sent broadcast");
+				return "SUCCESS";
+			case FAILURE:
+				intent.putExtra("RESULT", "FAILURE");
+				sendBroadcast(intent);
+				Log.i(TAG,"Sent broadcast");
+				return "FAILURE";
+			case IN_PROGRESS:
+				intent.putExtra("RESULT", "IN_PROGRESS");
+				sendBroadcast(intent);
+				Log.i(TAG,"Sent broadcast");
+				return "IN_PROGRESS";
+			case UNAVAILABLE:
+				intent.putExtra("RESULT", "UNAVAILABLE");
+				sendBroadcast(intent);
+				Log.i(TAG,"Sent broadcast");
+				return "UNAVAILABLE";
+			default:
+				intent.putExtra("RESULT", "OTHER");
+				sendBroadcast(intent);
+				Log.i(TAG,"Sent broadcast");
+				return "OTHER";
+			}
+		}
+	}
 	
 	/*
 	 * Runnables
@@ -197,49 +315,61 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	 * based on the TYPE of the object on the top of the queue
 	 * it passes off to the MessageManager or the SyncManager
 	 */
-	private Runnable sendToManager = new Runnable() {
+	private class sendToManager implements Runnable {
 
 		@Override
 		public void run() {
+			Log.i(TAG, "Starting to run sendToManagerThread");
 			MessageManager msgmang = new MessageManager();
 			SyncManager syncmang = new SyncManager();
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(mSubmitQueue!=null) { // TODO this is a bit brute force-ish, but it will do for the moment
+			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
+				Log.i(TAG, "mSubmitQueue != null");
 				CommunicationState state = null;
-				QueuedObject top = mSubmitQueue.getFirst();
 				Intent intent = new Intent();
-				intent.setAction(top.getUid());
 				try {
+					Log.i(TAG, "Element in mSubmitQueue! Pop the top!");
+					QueuedObject top = mSubmitQueue.getFirst();
+					intent.setAction(top.getUid());
 					switch (top.getType()) {
 					case MESSAGE:
 						// This is a Message object
 						try {
+							Log.i(TAG, "It's a MESSAGE!");
 							// TODO see if they want to give "job offer" to peers
 							state = (CommunicationState) msgmang.executeTask(top, mActiveRadio);
 							break;
 						} catch (CommunicationException e) {
 							Log.e(TAG, e.getMessage());
-							throw new NullPointerException();
-						} // try
+							continue;
+						} catch (Exception e) {
+							Log.e(TAG, e.getMessage());
+							continue;
+						}
 					case SYNC:
 						// This is a Sync object
 						try {
+							Log.i(TAG, "It's a SYNC!");
 							// TODO see if they want to give "job offer" to peers
 							state = (CommunicationState) syncmang.executeTask(top, mActiveRadio);
 							break;
 						} catch (CommunicationException e) {
 							Log.e(TAG, e.getMessage());
 							throw new NullPointerException();
-						} // try
+						} catch (Exception e) {
+							Log.e(TAG, e.getMessage());
+							continue;
+						}
 					default:
+						Log.e(TAG, "It's a NULL! NOT GOOD!");
 						throw new NullPointerException();
 					} // switch(Type)
 
-				} catch (NullPointerException npe) {
-					Log.e(TAG, npe.getMessage());
-					continue; // Consider throwing an Error return here
-				} // try
+				} catch (Exception e) {
+					Log.e(TAG, e.getMessage());
+					continue;
+				}
 				
 				switch(state) {
 				// TODO As of now, there is no policy such a as a "3 strike" policy to help drain the 
@@ -279,12 +409,17 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Log.i(TAG, "onReceive in ChannelMonitor");
+			if (!mExecutor.isTerminated()) {
+				mExecutor.shutdownNow();
+			}
 			ConnectivityManager connMgr = (ConnectivityManager) context
 					.getSystemService(Context.CONNECTIVITY_SERVICE);
 			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 			if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
 				// WiFi
+				Log.i(TAG, "WiFi enabled!");
 				mActiveRadio = Radio.WIFI;
 				// TODO determine if you want to try WiFi-Direct at any point here
 
@@ -294,13 +429,17 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				if (isConnectionFast(networkInfo.getType(),
 						networkInfo.getSubtype())) {
 					// "High speed" cellular connection
+					Log.i(TAG, "CELL enabled!");
 					mActiveRadio = Radio.CELL;
 				} else {
 					// Low speed cellular connection
+					Log.i(TAG, "GSM enabled!");
 					mActiveRadio = Radio.GSM;
 				}
 
 			}
+			mExecutor.submit(mThread);
+			
 		}
 
 		/**

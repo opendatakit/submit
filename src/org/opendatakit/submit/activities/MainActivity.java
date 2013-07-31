@@ -1,6 +1,6 @@
 package org.opendatakit.submit.activities;
 
-import com.example.odksubmit.R;
+import org.opendatakit.submit.R;
 
 import android.os.Bundle;
 import android.app.Activity;
