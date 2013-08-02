@@ -25,6 +25,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
@@ -40,14 +41,14 @@ import android.util.Log;
 public class SubmitService extends Service {
 
 	private static final String TAG = "SubmitService";
-	private LinkedList<QueuedObject> mSubmitQueue = null;
+	private LinkedList<QueuedObject> mSubmitQueue = new LinkedList<QueuedObject>();
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
-	private static final int NTHREADS = 10;
-	private static ExecutorService mExecutor = null;
-	private Runnable mRunnable;
-	private Thread mThread;
-	private SubmitAPI mSubApi;
+	private Runnable mRunnable = null;
+	private Thread mThread = null;
+	private SubmitAPI mSubApi = new SubmitAPI();
+	private ChannelMonitor mMonitor = null;
+	private IntentFilter mFilter = new IntentFilter();
 	
 	// TODO Consider moving this to another class and importing it...just a thought.
 	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
@@ -89,6 +90,7 @@ public class SubmitService extends Service {
 			return getStringState(state, uid);*/
 			QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
+			Log.i(TAG, "create()");
 			return submit.getUid();
 		}
 
@@ -109,7 +111,7 @@ public class SubmitService extends Service {
 			return getStringState(state, uid);*/
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, uri, pathname, uid);
 			mSubmitQueue.add(submit);
-
+			Log.i(TAG, "submit()");
 			return submit.getUid();
 		}
 
@@ -130,7 +132,7 @@ public class SubmitService extends Service {
 			return getStringState(state, uid);*/
 			QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, uri, pathname, uid);
 			mSubmitQueue.add(submit);
-
+			Log.i(TAG, "sync()");
 			return submit.getUid();
 		}
 
@@ -151,9 +153,7 @@ public class SubmitService extends Service {
 			return getStringState(state, uid);*/
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
-			if (mExecutor.isTerminated()) {
-				mExecutor.submit(mThread);
-			}
+			Log.i(TAG, "delete()");
 			return submit.getUid();
 		}
 
@@ -178,20 +178,23 @@ public class SubmitService extends Service {
 		Log.i(TAG, "onCreate() starting SubmitService");
 		//mRunnable = new sendToManager();
 		//mThread = new Thread(mRunnable);
-		mSubApi = new SubmitAPI();
-		// Does the SubmitQueue exist?
-		if (mSubmitQueue == null) {
-			mSubmitQueue = new LinkedList<QueuedObject>();
-		}
-		//if (mExecutor == null) {
-		//	mExecutor = Executors.newFixedThreadPool(NTHREADS);
-		//}
-		//mExecutor.execute(mThread);
+		//mSubApi = new SubmitAPI();
+		//Create SubmitQueue
+		//mSubmitQueue = new LinkedList<QueuedObject>();
+		//mFilter = new IntentFilter();
+		Log.i(TAG, "Finished onCreate()");
+		
 	}
 
 	@Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
+        
+        // Set up BroadcastReceiver
+        mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+		mMonitor = new ChannelMonitor();
+		
+		this.getApplicationContext().registerReceiver(mMonitor, mFilter);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -200,7 +203,8 @@ public class SubmitService extends Service {
 	@Override
     public void onDestroy() {
 		Log.i(TAG, "Destroying SubmitService instance");
-        mExecutor.shutdown();
+		this.getApplicationContext().unregisterReceiver(mMonitor);
+
     }
 	
 	@Override

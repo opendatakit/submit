@@ -25,22 +25,41 @@ import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
-	protected ClientRemote mService;
-	protected ServiceConnection mServiceCnxn;
+	protected ClientRemote mService = null;
+	private boolean mBound = false;
 	private static final String TAG = "MainActivity";
-	private PackageManager mManager;
-	private List<ApplicationInfo> mAppInfo;
+	private PackageManager mManager = null;
+	private List<ApplicationInfo> mAppInfo = null;
 	private int mUID;
-	private IntentFilter mFilter;
+	private IntentFilter mFilter = null;
+	private BroadcastReceiver myBroadcastReceiver = null;
 	
-	private BroadcastReceiver myBroadcastReceiver;
+	/* ServiceConnection with SubmitService */
+	protected ServiceConnection mServiceCnxn = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			mService = ClientRemote.Stub.asInterface((IBinder) service);	
+			mBound = true;
+			
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			mService = null;
+			mBound = false;
+		}
+		
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "onCreate() MainActivity in StubApp");
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
 		
 		/* Set up private and protected vars */
-		mServiceCnxn = null;
+		
 		mManager = this.getPackageManager();
 		mAppInfo = mManager.getInstalledApplications(PackageManager.GET_META_DATA);
 		mUID = this.getApplication().getApplicationInfo().uid;
@@ -53,29 +72,26 @@ public class MainActivity extends Activity {
 			public void onReceive(Context context, Intent intent) {
 				Log.d(TAG, "onReceive triggered by SubmitService");
 				Toast.makeText(getApplicationContext(), "API triggered", Toast.LENGTH_SHORT).show();
-				
 			}
 			
 		};
-
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
 		
 		/* Set up buttons */
 		setupView();
-		
-		/* Connect to SubmitService */
-		initConnection();
-		if (mServiceCnxn != null) {
-			bindToSubmitService();
-		} else {
-			Log.e(TAG, "ServiceConnection is null!");
-		}
 		
 		/* Register BroadcastReceiver */
 		this.getApplicationContext().registerReceiver(myBroadcastReceiver, mFilter);
 	}
 
+	@Override
+	public void onStart() {
+		super.onStart();
+		
+		//Bind to the service
+		Intent intent = new Intent("org.opendatakit.submit.scheduling.ClientRemote");
+		bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
+	}
+	
 	@Override
 	public void onDestroy() {
 		Log.i(TAG, "onDestroy() MainActivity StubApp");
@@ -189,6 +205,7 @@ public class MainActivity extends Activity {
 			public void onServiceConnected(ComponentName name, IBinder service) {
 				mService = ClientRemote.Stub.asInterface((IBinder) service);	
 				Log.i("ClientRemote", "Binding is done - Service connected");
+				
 			}
 
 			@Override
@@ -201,9 +218,9 @@ public class MainActivity extends Activity {
 		
 	}
 	
-	private void bindToSubmitService() {
+	private boolean bindToSubmitService() {
 		Intent intent = new Intent("org.opendatakit.submit.scheduling.ClientRemote");
-		bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
+		return bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
 	}
 
 }
