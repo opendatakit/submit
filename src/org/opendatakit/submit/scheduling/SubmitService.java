@@ -37,7 +37,7 @@ import android.util.Log;
  * @author mvigil
  *
  */
-public class SubmitService extends Service implements MessageInterface, SyncInterface{
+public class SubmitService extends Service {
 
 	private static final String TAG = "SubmitService";
 	private LinkedList<QueuedObject> mSubmitQueue = null;
@@ -54,7 +54,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		
 		@Override
 		public String send(String dest, String payload, String uid) throws RemoteException {
-			CommunicationState state = null;
+			/*CommunicationState state = null;
 			try {
 				state = (CommunicationState) mSubApi.send(dest, payload, uid);
 			} catch (IOException e) {
@@ -65,15 +65,17 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				e.printStackTrace();
 			}
 			
-			return getStringState(state, uid);
+			return getStringState(state, uid);*/
 			
-			//return this.send(dest, payload, uid);
+			QueuedObject submit = new QueuedObject(dest, payload, uid);
+			mSubmitQueue.add(submit);
+			return submit.getUid();
 		}
 
 		@Override
 		public String create(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			CommunicationState state = null;
+			/*CommunicationState state = null;
 			try {
 				state = (CommunicationState) mSubApi.create(st, uri, pathname, uid);
 			} catch (IOException e) {
@@ -84,14 +86,16 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				e.printStackTrace();
 			}
 			
-			return getStringState(state, uid);
-			//return this.create(st, uri, pathname, uid);
+			return getStringState(state, uid);*/
+			QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, uri, pathname, uid);
+			mSubmitQueue.add(submit);
+			return submit.getUid();
 		}
 
 		@Override
 		public String download(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			CommunicationState state = null;
+			/*CommunicationState state = null;
 			try {
 				state = (CommunicationState) mSubApi.download(st, uri, pathname, uid);
 			} catch (IOException e) {
@@ -102,14 +106,17 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				e.printStackTrace();
 			}
 			
-			return getStringState(state, uid);
-			//return this.download(st, uri, pathname, uid);
+			return getStringState(state, uid);*/
+			QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, uri, pathname, uid);
+			mSubmitQueue.add(submit);
+
+			return submit.getUid();
 		}
 
 		@Override
 		public String sync(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			CommunicationState state = null;
+			/*CommunicationState state = null;
 			try {
 				state = (CommunicationState) mSubApi.sync(st, uri, pathname, uid);
 			} catch (IOException e) {
@@ -120,14 +127,17 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				e.printStackTrace();
 			}
 			
-			return getStringState(state, uid);
-			//return this.sync(st, uri, pathname, uid);
+			return getStringState(state, uid);*/
+			QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, uri, pathname, uid);
+			mSubmitQueue.add(submit);
+
+			return submit.getUid();
 		}
 
 		@Override
 		public String delete(SyncType st, String uri, String pathname, String uid)
 				throws RemoteException {
-			CommunicationState state = null;
+			/*CommunicationState state = null;
 			try {
 				state = (CommunicationState) mSubApi.delete(st, uri, pathname, uid);
 			} catch (IOException e) {
@@ -138,8 +148,13 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				e.printStackTrace();
 			}
 			
-			return getStringState(state, uid);
-			//return this.delete(st, uri, pathname, uid);
+			return getStringState(state, uid);*/
+			QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, uri, pathname, uid);
+			mSubmitQueue.add(submit);
+			if (mExecutor.isTerminated()) {
+				mExecutor.submit(mThread);
+			}
+			return submit.getUid();
 		}
 
 		@Override
@@ -161,16 +176,16 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	public void onCreate() {
 		
 		Log.i(TAG, "onCreate() starting SubmitService");
-		mRunnable = new sendToManager();
-		mThread = new Thread(mRunnable);
+		//mRunnable = new sendToManager();
+		//mThread = new Thread(mRunnable);
 		mSubApi = new SubmitAPI();
 		// Does the SubmitQueue exist?
 		if (mSubmitQueue == null) {
 			mSubmitQueue = new LinkedList<QueuedObject>();
 		}
-		if (mExecutor == null) {
-			mExecutor = Executors.newFixedThreadPool(NTHREADS);
-		}
+		//if (mExecutor == null) {
+		//	mExecutor = Executors.newFixedThreadPool(NTHREADS);
+		//}
 		//mExecutor.execute(mThread);
 	}
 
@@ -192,64 +207,6 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 	public IBinder onBind(Intent intent) {
 		Log.i(TAG, "Binding to SubmitService");
 		return mBinder;
-	}
-
-	/*
-	 * Sync and Message methods
-	 */
-	@Override
-	public String send(String dest, String msg, String uid) throws IOException,
-			MessageException {
-		QueuedObject submit = new QueuedObject(dest, msg, uid);
-		mSubmitQueue.add(submit);
-		if (mExecutor.isTerminated()) {
-			mExecutor.submit(mThread);
-		}
-		return submit.getUid();
-	}
-	
-	@Override
-	public Object create(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, dest, pathname, uid);
-		mSubmitQueue.add(submit);
-		if (mExecutor.isTerminated()) {
-			mExecutor.submit(mThread);
-		}
-		return submit.getUid();
-	}
-
-	@Override
-	public Object download(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, dest, pathname, uid);
-		mSubmitQueue.add(submit);
-		if (mExecutor.isTerminated()) {
-			mExecutor.submit(mThread);
-		}
-		return submit.getUid();
-	}
-
-	@Override
-	public Object delete(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, dest, pathname, uid);
-		mSubmitQueue.add(submit);
-		if (mExecutor.isTerminated()) {
-			mExecutor.submit(mThread);
-		}
-		return submit.getUid();
-	}
-
-	@Override
-	public Object sync(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, dest, pathname, uid);
-		mSubmitQueue.add(submit);
-		if (mExecutor.isTerminated()) {
-			mExecutor.submit(mThread);
-		}
-		return submit.getUid();
 	}
 	
 	/*
@@ -410,7 +367,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Log.i(TAG, "onReceive in ChannelMonitor");
-			if (!mExecutor.isTerminated()) {
+			/*if (!mExecutor.isTerminated()) {
 				mExecutor.shutdownNow();
 			}
 			ConnectivityManager connMgr = (ConnectivityManager) context
@@ -438,7 +395,7 @@ public class SubmitService extends Service implements MessageInterface, SyncInte
 				}
 
 			}
-			mExecutor.submit(mThread);
+			mExecutor.submit(mThread);*/
 			
 		}
 
