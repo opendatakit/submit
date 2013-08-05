@@ -224,8 +224,8 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				int state;
 				try {
+					int state;
 					state = mService.queueSize();
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());

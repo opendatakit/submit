@@ -213,12 +213,13 @@ public class SubmitService extends Service {
 
 		@Override
 		public boolean onQueue(String uid) throws RemoteException {
-			return this.onQueue(uid);
+			// TODO
+			return false;
 		}
 
 		@Override
 		public int queueSize() throws RemoteException {
-			return this.queueSize();
+			return mSubmitQueue.size();
 		}
 	};
 	
