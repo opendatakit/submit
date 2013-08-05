@@ -116,6 +116,8 @@ public class MainActivity extends Activity {
 		final Button btn_Sync = (Button) findViewById(R.id.bt_sync);
 		final Button btn_Delete = (Button) findViewById(R.id.bt_delete);
 		final Button btn_Send = (Button) findViewById(R.id.bt_send);
+		//final Button btn_OnQueue = (Button) findViewById(R.id.bt_onQueue);
+		final Button btn_QueueSize = (Button) findViewById(R.id.bt_size);
 		
 		/*
 		 * set OnClickListeners for the test buttons
@@ -125,11 +127,14 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				try {
-					String state = null;
+					String state = "";
 					state = mService.create(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-					Log.d(TAG, "State of SubmitAPI.create -- " + state);
 				} catch (RemoteException e) {
-					Log.e(TAG, e.getMessage());
+					String err = (e.getMessage() == null)?"RemoteException":e.getMessage();
+					Log.e(TAG, err);
+				} catch (Exception e) {
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
 				}
 
 			}
@@ -142,8 +147,9 @@ public class MainActivity extends Activity {
 				String state = null;
 				try {
 					state = mService.download(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-					Log.d(TAG, "State of SubmitAPI.download -- " + state);
 				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage());
 				}
 
@@ -157,8 +163,9 @@ public class MainActivity extends Activity {
 				String state = null;
 				try {
 					state = mService.sync(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-					Log.d(TAG, "State of SubmitAPI.sync -- " + state);
 				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage());
 				}
 
@@ -172,8 +179,9 @@ public class MainActivity extends Activity {
 				String state = null;
 				try {
 					state = mService.delete(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-					Log.d(TAG, "State of SubmitAPI.delete -- " + state);
 				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage());
 				}
 
@@ -187,8 +195,41 @@ public class MainActivity extends Activity {
 				String state;
 				try {
 					state = mService.send("http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-					Log.d(TAG, "State of SubmitAPI.send -- " + state);
 				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
+					Log.e(TAG, e.getMessage());
+				}
+
+			}
+		});
+		
+		/* TODO
+		 btn_OnQueue.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				boolean state;
+				try {
+					state = mService.onQueue("uid");
+					Log.d(TAG, "State of SubmitAPI.queueSize -- " + state);
+				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				}
+
+			}
+		});*/
+		
+		btn_QueueSize.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				int state;
+				try {
+					state = mService.queueSize();
+				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
 					Log.e(TAG, e.getMessage());
 				}
 

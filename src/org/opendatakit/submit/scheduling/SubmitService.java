@@ -41,14 +41,63 @@ import android.util.Log;
 public class SubmitService extends Service {
 
 	private static final String TAG = "SubmitService";
-	private LinkedList<QueuedObject> mSubmitQueue = new LinkedList<QueuedObject>();
+	private static LinkedList<QueuedObject> mSubmitQueue = null;
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
-	private Runnable mRunnable = null;
-	private Thread mThread = null;
-	private SubmitAPI mSubApi = new SubmitAPI();
+	private SubmitAPI mSubApi = null;
 	private ChannelMonitor mMonitor = null;
-	private IntentFilter mFilter = new IntentFilter();
+	private IntentFilter mFilter = null;
+	private static final int QUEUE_THRESHOLD = 3;
+	protected static Runnable mRunnable = null;
+	protected static Thread mThread = null;
+	
+	/*
+	 * Service methods
+	 */
+	
+	@Override
+	public void onCreate() {
+		
+		Log.i(TAG, "onCreate() starting SubmitService");
+		
+		// Set up private vars
+		mSubmitQueue = new LinkedList<QueuedObject>();
+		mFilter = new IntentFilter();
+		mSubApi = new SubmitAPI();
+		
+		 // Set up Queue Thread
+        mRunnable = new sendToManager();
+        mThread = new Thread(mRunnable);
+        // Set up BroadcastReceiver
+        mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+		mMonitor = new ChannelMonitor();
+		
+		this.getApplicationContext().registerReceiver(mMonitor, mFilter);
+		
+		
+	}
+
+	@Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "Received start id " + startId + ": " + intent);
+        
+        // We want this service to continue running until it is explicitly
+        // stopped, so return sticky.
+        return START_STICKY;
+    }
+	
+	@Override
+    public void onDestroy() {
+		Log.i(TAG, "Destroying SubmitService instance");
+		this.getApplicationContext().unregisterReceiver(mMonitor);
+
+    }
+	
+	@Override
+	public IBinder onBind(Intent intent) {
+		Log.i(TAG, "Binding to SubmitService");
+		return mBinder;
+	}
 	
 	// TODO Consider moving this to another class and importing it...just a thought.
 	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
@@ -70,6 +119,7 @@ public class SubmitService extends Service {
 			
 			QueuedObject submit = new QueuedObject(dest, payload, uid);
 			mSubmitQueue.add(submit);
+			manageQueue();
 			return submit.getUid();
 		}
 
@@ -91,6 +141,7 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "create()");
+			manageQueue();
 			return submit.getUid();
 		}
 
@@ -112,6 +163,7 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "submit()");
+			manageQueue();
 			return submit.getUid();
 		}
 
@@ -133,6 +185,7 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "sync()");
+			manageQueue();
 			return submit.getUid();
 		}
 
@@ -154,6 +207,7 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "delete()");
+			manageQueue();
 			return submit.getUid();
 		}
 
@@ -168,65 +222,24 @@ public class SubmitService extends Service {
 		}
 	};
 	
-	/*
-	 * Service methods
-	 */
 	
-	@Override
-	public void onCreate() {
-		
-		Log.i(TAG, "onCreate() starting SubmitService");
-		//mRunnable = new sendToManager();
-		//mThread = new Thread(mRunnable);
-		//mSubApi = new SubmitAPI();
-		//Create SubmitQueue
-		//mSubmitQueue = new LinkedList<QueuedObject>();
-		//mFilter = new IntentFilter();
-		Log.i(TAG, "Finished onCreate()");
-		
-	}
-
-	@Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(TAG, "Received start id " + startId + ": " + intent);
-        
-        // Set up BroadcastReceiver
-        mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-		mMonitor = new ChannelMonitor();
-		
-		this.getApplicationContext().registerReceiver(mMonitor, mFilter);
-        // We want this service to continue running until it is explicitly
-        // stopped, so return sticky.
-        return START_STICKY;
-    }
-	
-	@Override
-    public void onDestroy() {
-		Log.i(TAG, "Destroying SubmitService instance");
-		this.getApplicationContext().unregisterReceiver(mMonitor);
-
-    }
-	
-	@Override
-	public IBinder onBind(Intent intent) {
-		Log.i(TAG, "Binding to SubmitService");
-		return mBinder;
-	}
 	
 	/*
 	 * private methods
 	 */
-	private boolean onQueue(String uid) {
-		for (QueuedObject qo : mSubmitQueue) {
-			if (qo.getUid().equals(uid)) {
-				return true;
-			}
-		}
-		return false;
-	}
 	
-	private int queueSize() {
-		return mSubmitQueue.size();
+	/* Call this to start managing the queue */
+	protected void manageQueue() {
+		Log.i(TAG, "manageQueue()");
+		try{
+			if(!mThread.isAlive()) {
+				mThread.run();
+			}
+		} catch(NullPointerException npe) {
+			Log.e(TAG, npe.getMessage());
+		} catch(Exception e) {
+			Log.e(TAG, e.getMessage());
+		}
 	}
 
 	/* For now this is used for debugging */
@@ -285,8 +298,11 @@ public class SubmitService extends Service {
 			SyncManager syncmang = new SyncManager();
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
-				Log.i(TAG, "mSubmitQueue != null");
+			while(true) { // TODO this is a bit brute force-ish, but it will do for the moment
+				if (mActiveRadio == null) {
+					break;
+				}
+				/*
 				CommunicationState state = null;
 				Intent intent = new Intent();
 				try {
@@ -348,8 +364,10 @@ public class SubmitService extends Service {
 					default:
 						sendBroadcast(intent); 
 						break;
-				} // switch(state)
-			} // which
+				} // switch(state) 
+				*/
+			} // while
+			Log.i(TAG, "Leaving run() in Thread");
 		}
 		
 	};

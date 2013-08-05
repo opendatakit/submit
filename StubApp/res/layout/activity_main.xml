@@ -39,7 +39,7 @@
             android:id="@+id/bt_delete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Button" />
+            android:text="Delete" />
 
         <EditText
             android:id="@+id/txt_msg"
@@ -56,6 +56,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Send" />
+
+        <Button
+            android:id="@+id/bt_size"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="QueueSize" />
 
     </LinearLayout>
 

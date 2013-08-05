@@ -30,7 +30,7 @@
         </receiver>
         <service
             android:name="org.opendatakit.submit.scheduling.SubmitService"
-            android:process="submit"
+            android:process=":submit"
             android:exported="true">
             <intent-filter>
                 <action android:name="org.opendatakit.submit.scheduling.ClientRemote"></action> 
