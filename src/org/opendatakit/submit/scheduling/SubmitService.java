@@ -25,6 +25,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.TelephonyManager;
@@ -233,7 +234,7 @@ public class SubmitService extends Service {
 		Log.i(TAG, "manageQueue()");
 		try{
 			if(!mThread.isAlive()) {
-				mThread.run();
+				mThread.start();
 			}
 		} catch(NullPointerException npe) {
 			Log.e(TAG, npe.getMessage());
@@ -299,13 +300,14 @@ public class SubmitService extends Service {
 			SyncManager syncmang = new SyncManager(getApplicationContext());
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(true) { // TODO this is a bit brute force-ish, but it will do for the moment
+			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
 				try {
-					Thread.sleep(100);
 					if(mActiveRadio == null) {
 						Log.i(TAG, "No active radio. Exit RoutingThread.");
 						break;
 					}
+					mSubmitQueue.pop();
+					Thread.sleep(5); // TODO temporary time
 				} catch (InterruptedException e) {
 					Log.e(TAG, e.getMessage());
 				}
@@ -331,9 +333,7 @@ public class SubmitService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Log.i(TAG, "onReceive in ChannelMonitor");
-			/*if (!mExecutor.isTerminated()) {
-				mExecutor.shutdownNow();
-			}
+
 			ConnectivityManager connMgr = (ConnectivityManager) context
 					.getSystemService(Context.CONNECTIVITY_SERVICE);
 			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -359,7 +359,6 @@ public class SubmitService extends Service {
 				}
 
 			}
-			mExecutor.submit(mThread);*/
 			
 		}
 
