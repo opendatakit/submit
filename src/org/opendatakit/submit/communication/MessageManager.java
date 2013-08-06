@@ -12,6 +12,7 @@ import org.opendatakit.submit.route.QueuedObject;
 
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 public class MessageManager implements CommunicationInterface {
@@ -20,7 +21,7 @@ public class MessageManager implements CommunicationInterface {
 	private ArrayList<API> mAPIList = null;
 	private SubmitAPI mSubmitAPI = null;
 	
-	public MessageManager() {
+	public MessageManager(SharedPreferences sp) {
 		mRAMap = new RadioAPIMap();
 		mSubmitAPI = new SubmitAPI();
 		

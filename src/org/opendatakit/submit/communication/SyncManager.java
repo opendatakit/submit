@@ -15,6 +15,7 @@ import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -24,7 +25,7 @@ public class SyncManager implements CommunicationInterface {
 	private ArrayList<API> mAPIList = null;
 	private SubmitAPI mSubmitAPI = null;
 	
-	public SyncManager() {
+	public SyncManager(SharedPreferences sp) {
 		mRAMap = new RadioAPIMap();
 		mSubmitAPI = new SubmitAPI();
 	}

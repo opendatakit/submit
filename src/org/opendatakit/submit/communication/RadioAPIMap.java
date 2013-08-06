@@ -15,6 +15,7 @@ import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.flags.StringAPI;
 import org.opendatakit.submit.flags.StringRadio;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 /**
@@ -26,9 +27,12 @@ import android.util.Log;
  */
 public class RadioAPIMap {
 	private static final String PROP_FILE = "/Users/mvigil/ODK/opendatakit.submit/radio.properties"; // t
-	HashMap<Radio, ArrayList<API>> mAPIMap;
+	HashMap<Radio, ArrayList<API>> mAPIMap = null;
+	private static SharedPreferences mPrefs = null;
 
 	public RadioAPIMap() {
+		mAPIMap = new HashMap<Radio, ArrayList<API>>();
+
 		readFromFile();
 	}
 

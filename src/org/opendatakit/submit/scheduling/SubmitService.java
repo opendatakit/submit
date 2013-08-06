@@ -3,31 +3,28 @@ package org.opendatakit.submit.scheduling;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Set;
+
 
 import org.opendatakit.submit.route.QueuedObject;
 import org.opendatakit.submit.scheduling.ClientRemote;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.communication.MessageManager;
 import org.opendatakit.submit.communication.SyncManager;
-import org.opendatakit.submit.exceptions.CommunicationException;
-import org.opendatakit.submit.exceptions.MessageException;
-import org.opendatakit.submit.exceptions.SyncException;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.flags.SyncDirection;
 import org.opendatakit.submit.flags.SyncType;
-import org.opendatakit.submit.interfaces.MessageInterface;
-import org.opendatakit.submit.interfaces.SyncInterface;
 
+import android.R;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.TelephonyManager;
@@ -50,6 +47,8 @@ public class SubmitService extends Service {
 	private static final int QUEUE_THRESHOLD = 3;
 	protected static Runnable mRunnable = null;
 	protected static Thread mThread = null;
+	private SharedPreferences mPrefs = null;
+	private Resources mResources = null;
 	
 	/*
 	 * Service methods
@@ -64,6 +63,11 @@ public class SubmitService extends Service {
 		mSubmitQueue = new LinkedList<QueuedObject>();
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
+		
+		// initialize SharedPreferences
+		mResources = getResources();
+		mPrefs = this.getSharedPreferences("org.opendatakit.submit", MODE_MULTI_PROCESS);
+		initializePrefs();
 		
 		 // Set up Queue Thread
         mRunnable = new sendToManager();
@@ -242,6 +246,23 @@ public class SubmitService extends Service {
 			Log.e(TAG, e.getMessage());
 		}
 	}
+	
+	private void initializePrefs() {
+		// TODO add default APIs to this as they come 
+		// (I expect ODKv2, SMS, and GCM will be options)
+		
+		// TODO This can be done in a MUCH better way! But I just
+		// wanted to get this done and over for now.
+		Set<String> cellAPIs = (Set<String>) new ArrayList<String>();
+		cellAPIs.add("ODKv2");
+		cellAPIs.add("GCM");
+		cellAPIs.add("SMS");
+		mPrefs.edit().putStringSet("CELL", cellAPIs);
+		
+		Set<String> gsmAPIs = (Set<String>) new ArrayList<String>();
+		gsmAPIs.add("SMS");
+		
+	}
 
 	/* For now this is used for debugging */
 	private String getStringState(CommunicationState state, String uid) {
@@ -295,80 +316,17 @@ public class SubmitService extends Service {
 		@Override
 		public void run() {
 			Log.i(TAG, "Starting to run sendToManagerThread");
-			MessageManager msgmang = new MessageManager();
-			SyncManager syncmang = new SyncManager();
+			MessageManager msgmang = new MessageManager(mPrefs);
+			SyncManager syncmang = new SyncManager(mPrefs);
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
 			while(true) { // TODO this is a bit brute force-ish, but it will do for the moment
-				if (mActiveRadio == null) {
-					break;
-				}
-				/*
-				CommunicationState state = null;
-				Intent intent = new Intent();
 				try {
-					Log.i(TAG, "Element in mSubmitQueue! Pop the top!");
-					QueuedObject top = mSubmitQueue.getFirst();
-					intent.setAction(top.getUid());
-					switch (top.getType()) {
-					case MESSAGE:
-						// This is a Message object
-						try {
-							Log.i(TAG, "It's a MESSAGE!");
-							// TODO see if they want to give "job offer" to peers
-							state = (CommunicationState) msgmang.executeTask(top, mActiveRadio);
-							break;
-						} catch (CommunicationException e) {
-							Log.e(TAG, e.getMessage());
-							continue;
-						} catch (Exception e) {
-							Log.e(TAG, e.getMessage());
-							continue;
-						}
-					case SYNC:
-						// This is a Sync object
-						try {
-							Log.i(TAG, "It's a SYNC!");
-							// TODO see if they want to give "job offer" to peers
-							state = (CommunicationState) syncmang.executeTask(top, mActiveRadio);
-							break;
-						} catch (CommunicationException e) {
-							Log.e(TAG, e.getMessage());
-							throw new NullPointerException();
-						} catch (Exception e) {
-							Log.e(TAG, e.getMessage());
-							continue;
-						}
-					default:
-						Log.e(TAG, "It's a NULL! NOT GOOD!");
-						throw new NullPointerException();
-					} // switch(Type)
-
-				} catch (Exception e) {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
 					Log.e(TAG, e.getMessage());
-					continue;
 				}
-				
-				switch(state) {
-				// TODO As of now, there is no policy such a as a "3 strike" policy to help drain the 
-				// queue in case of bad requests. Think about the policy we want implemented here.
-				// This may involve an extra piece of member data to QueuedObject
-					case SUCCESS:
-						// The communication request has been
-						// successfully submitted and completed
-						mSubmitQueue.removeFirst();
-						sendBroadcast(intent); 
-						break;
-					case FAILURE: 
-					case IN_PROGRESS:
-					case UNAVAILABLE:
-					default:
-						sendBroadcast(intent); 
-						break;
-				} // switch(state) 
-				*/
-			} // while
-			Log.i(TAG, "Leaving run() in Thread");
+			}
 		}
 		
 	};

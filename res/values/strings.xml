@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">ODKSubmit</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-
+    <string name="cell">CELL</string>
+    <string name="wifi">WIFI</string>
+    <string name="gsm">GSM</string>
+    <string name="p2p_wifi">P2P_WIFI</string>
+    <string name="odkv2">ODKv2</string>
+    <string name="sms">SMS</string>
+    <string name="gcm">GCM</string>
+    <string name="stub">STUB</string>
 </resources>
