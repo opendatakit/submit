@@ -1,8 +1,10 @@
 package org.opendatakit.submit.communication;
 
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,9 +55,9 @@ public class RadioAPIMap {
 		
 		try {
 			
-			FileInputStream fis = new FileInputStream(PROP_FILE);
-			prop.load(fis); 
-			fis.close();
+			BufferedReader buf = new BufferedReader(new FileReader(PROP_FILE));
+			prop.load(buf); 
+			buf.close();
 			
 			Set<Entry<Object, Object>> set = prop.entrySet();
 			for(Entry<Object, Object> e : set) {

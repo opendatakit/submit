@@ -64,11 +64,6 @@ public class SubmitService extends Service {
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
 		
-		// initialize SharedPreferences
-		mResources = getResources();
-		mPrefs = this.getSharedPreferences("org.opendatakit.submit", MODE_MULTI_PROCESS);
-		initializePrefs();
-		
 		 // Set up Queue Thread
         mRunnable = new sendToManager();
         mThread = new Thread(mRunnable);
@@ -247,22 +242,6 @@ public class SubmitService extends Service {
 		}
 	}
 	
-	private void initializePrefs() {
-		// TODO add default APIs to this as they come 
-		// (I expect ODKv2, SMS, and GCM will be options)
-		
-		// TODO This can be done in a MUCH better way! But I just
-		// wanted to get this done and over for now.
-		Set<String> cellAPIs = (Set<String>) new ArrayList<String>();
-		cellAPIs.add("ODKv2");
-		cellAPIs.add("GCM");
-		cellAPIs.add("SMS");
-		mPrefs.edit().putStringSet("CELL", cellAPIs);
-		
-		Set<String> gsmAPIs = (Set<String>) new ArrayList<String>();
-		gsmAPIs.add("SMS");
-		
-	}
 
 	/* For now this is used for debugging */
 	private String getStringState(CommunicationState state, String uid) {
@@ -323,6 +302,10 @@ public class SubmitService extends Service {
 			while(true) { // TODO this is a bit brute force-ish, but it will do for the moment
 				try {
 					Thread.sleep(100);
+					if(mActiveRadio == null) {
+						Log.i(TAG, "No active radio. Exit RoutingThread.");
+						break;
+					}
 				} catch (InterruptedException e) {
 					Log.e(TAG, e.getMessage());
 				}
