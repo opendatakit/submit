@@ -295,8 +295,8 @@ public class SubmitService extends Service {
 		@Override
 		public void run() {
 			Log.i(TAG, "Starting to run sendToManagerThread");
-			MessageManager msgmang = new MessageManager(mPrefs);
-			SyncManager syncmang = new SyncManager(mPrefs);
+			MessageManager msgmang = new MessageManager(getApplicationContext());
+			SyncManager syncmang = new SyncManager(getApplicationContext());
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
 			while(true) { // TODO this is a bit brute force-ish, but it will do for the moment

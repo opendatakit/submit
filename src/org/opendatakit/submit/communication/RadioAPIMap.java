@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -17,7 +18,9 @@ import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.flags.StringAPI;
 import org.opendatakit.submit.flags.StringRadio;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 /**
@@ -28,13 +31,14 @@ import android.util.Log;
  *
  */
 public class RadioAPIMap {
-	private static final String PROP_FILE = "/Users/mvigil/ODK/opendatakit.submit/radio.properties"; // t
+	private static final String PROP_FILE = "radio.properties"; 
+	private static final String TAG = "RadioAPIMap";
 	HashMap<Radio, ArrayList<API>> mAPIMap = null;
-	private static SharedPreferences mPrefs = null;
+	private AssetManager mManager = null;
 
-	public RadioAPIMap() {
+	public RadioAPIMap(Context context) {
 		mAPIMap = new HashMap<Radio, ArrayList<API>>();
-
+		mManager = context.getResources().getAssets();
 		readFromFile();
 	}
 
@@ -51,13 +55,10 @@ public class RadioAPIMap {
 	}
 	
 	private void readFromFile() {
-		Properties prop = new Properties();
-		
 		try {
-			
-			BufferedReader buf = new BufferedReader(new FileReader(PROP_FILE));
-			prop.load(buf); 
-			buf.close();
+			InputStream is = mManager.open(PROP_FILE);
+			Properties prop = new Properties();
+			prop.load(is);
 			
 			Set<Entry<Object, Object>> set = prop.entrySet();
 			for(Entry<Object, Object> e : set) {
@@ -96,9 +97,11 @@ public class RadioAPIMap {
 				}
 			}
 		} catch (IOException e) {
-			Log.e("RadioAPIMap", e.getMessage());
+			Log.e(TAG, e.getMessage());
+			return;
 		} catch (NullPointerException npe) {
-			Log.e("RadioAPIMap", npe.getMessage());
+			Log.e(TAG, npe.getMessage());
+			return;
 		}
 	}
 }
