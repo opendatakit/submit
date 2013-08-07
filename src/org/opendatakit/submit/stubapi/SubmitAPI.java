@@ -14,31 +14,31 @@ public class SubmitAPI implements SyncInterface, MessageInterface {
 	@Override
 	public Object send(String dest, String msg, String uid) throws IOException,
 			MessageException {
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.SUCCESS;
 	}
 
 	@Override
 	public Object create(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.SUCCESS;
 	}
 
 	@Override
 	public Object download(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.SUCCESS;
 	}
 
 	@Override
 	public Object delete(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.SUCCESS;
 	}
 
 	@Override
 	public Object sync(SyncType st, String dest, String pathname, String uid)
 			throws IOException, SyncException {
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.SUCCESS;
 	}
 
 }

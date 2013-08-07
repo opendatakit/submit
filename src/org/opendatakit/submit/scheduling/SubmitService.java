@@ -11,10 +11,12 @@ import org.opendatakit.submit.scheduling.ClientRemote;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.communication.MessageManager;
 import org.opendatakit.submit.communication.SyncManager;
+import org.opendatakit.submit.exceptions.CommunicationException;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.flags.SyncDirection;
 import org.opendatakit.submit.flags.SyncType;
+import org.opendatakit.submit.flags.Types;
 
 import android.R;
 import android.app.Service;
@@ -27,6 +29,7 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -50,6 +53,8 @@ public class SubmitService extends Service {
 	protected static Thread mThread = null;
 	private SharedPreferences mPrefs = null;
 	private Resources mResources = null;
+	private MessageManager msgmang = null;
+	private SyncManager syncmang = null;
 	
 	/*
 	 * Service methods
@@ -62,6 +67,8 @@ public class SubmitService extends Service {
 		
 		// Set up private vars
 		mSubmitQueue = new LinkedList<QueuedObject>();
+		syncmang = new SyncManager(getApplicationContext());
+		msgmang = new MessageManager(getApplicationContext());
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
 		
@@ -244,43 +251,19 @@ public class SubmitService extends Service {
 	}
 	
 
-	/* For now this is used for debugging */
-	private String getStringState(CommunicationState state, String uid) {
+	/* 
+	 * Broadcasts CommunicationState to the 
+	 * Application listening with a BroadcastReceiver
+	 * using the UID as an ID mechanism.
+	 */
+	private void broadcastStateToApp(CommunicationState state, String uid) {
 		Intent intent = new Intent();
 		intent.setAction(uid);
-		if (state == null) {
-			return null;
-		} else {
-			switch(state) {
-			case SUCCESS:
-				intent.putExtra("RESULT", "SUCCESS");
-				sendBroadcast(intent);
-				Log.i(TAG,"Sent broadcast");
-				return "SUCCESS";
-			case FAILURE:
-				intent.putExtra("RESULT", "FAILURE");
-				sendBroadcast(intent);
-				Log.i(TAG,"Sent broadcast");
-				return "FAILURE";
-			case IN_PROGRESS:
-				intent.putExtra("RESULT", "IN_PROGRESS");
-				sendBroadcast(intent);
-				Log.i(TAG,"Sent broadcast");
-				return "IN_PROGRESS";
-			case UNAVAILABLE:
-				intent.putExtra("RESULT", "UNAVAILABLE");
-				sendBroadcast(intent);
-				Log.i(TAG,"Sent broadcast");
-				return "UNAVAILABLE";
-			default:
-				intent.putExtra("RESULT", "OTHER");
-				sendBroadcast(intent);
-				Log.i(TAG,"Sent broadcast");
-				return "OTHER";
-			}
-		}
+		intent.putExtra("RESULT", (Parcelable)state);
+		sendBroadcast(intent);
+		Log.i(TAG,"Sent broadcast to " + uid);
 	}
-	
+
 	/*
 	 * Runnables
 	 */
@@ -296,19 +279,58 @@ public class SubmitService extends Service {
 		@Override
 		public void run() {
 			Log.i(TAG, "Starting to run sendToManagerThread");
-			MessageManager msgmang = new MessageManager(getApplicationContext());
-			SyncManager syncmang = new SyncManager(getApplicationContext());
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
 			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
 				try {
+					CommunicationState result = null;
 					if(mActiveRadio == null) {
 						Log.i(TAG, "No active radio. Exit RoutingThread.");
 						break;
 					}
-					mSubmitQueue.pop();
+					QueuedObject top = mSubmitQueue.getFirst();
+					
+					// Pass QueuedObject off to appropriate manager
+					if(top.getType() == Types.SYNC) {
+						// Handle Sync data
+						// TODO see if any P2P mode has been specified
+						// result of communication over determined API
+						result = (CommunicationState)syncmang.executeTask(top, mActiveRadio);
+					} else if (top.getType() == Types.MESSAGE){
+						// Handle Message data
+						// result of communication over determined API
+						result = (CommunicationState)msgmang.executeTask(top, mActiveRadio);
+					}
+					
+					// Depending on the resulting CommunicationState
+					// pop the top object off mSubmitQueue, keep it in for 
+					// another round, or pop it and throw an exception
+					switch(result) {
+						case SUCCESS:
+							// Pop off the top
+							top = mSubmitQueue.pop();
+							// broadcast result to client app
+							broadcastStateToApp(result, top.getUid());
+							break;
+						case FAILURE:
+						case IN_PROGRESS:
+						case UNAVAILABLE:
+							// broadcast result to client app
+							broadcastStateToApp(result, top.getUid());
+							break;
+						default:
+							/*
+							 * TODO Consider adding a mechanism here, where if 
+							 * a QueuedObject has just been sitting on the queue
+							 * for more than X rounds through the Queue, we dump
+							 * it as a particular failure case. 
+							 */
+							break;
+					}
 					Thread.sleep(5); // TODO temporary time
 				} catch (InterruptedException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (CommunicationException e) {
 					Log.e(TAG, e.getMessage());
 				}
 			}
