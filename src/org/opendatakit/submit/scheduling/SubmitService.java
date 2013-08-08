@@ -71,13 +71,15 @@ public class SubmitService extends Service {
 		msgmang = new MessageManager(getApplicationContext());
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
-		
-		 // Set up Queue Thread
-        mRunnable = new sendToManager();
-        mThread = new Thread(mRunnable);
+        
         // Set up BroadcastReceiver
         mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
 		mMonitor = new ChannelMonitor();
+		
+		// Set up Queue Thread
+        mRunnable = new sendToManager();
+        mThread = new Thread(mRunnable);
+        mThread.start();
 		
 		this.getApplicationContext().registerReceiver(mMonitor, mFilter);
 		
@@ -148,7 +150,6 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.CREATE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "create()");
-			manageQueue();
 			return submit.getUid();
 		}
 
@@ -169,8 +170,7 @@ public class SubmitService extends Service {
 			return getStringState(state, uid);*/
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DOWNLOAD, uri, pathname, uid);
 			mSubmitQueue.add(submit);
-			Log.i(TAG, "submit()");
-			manageQueue();
+			Log.i(TAG, "download()");
 			return submit.getUid();
 		}
 
@@ -192,7 +192,6 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.SYNC, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "sync()");
-			manageQueue();
 			return submit.getUid();
 		}
 
@@ -214,7 +213,6 @@ public class SubmitService extends Service {
 			QueuedObject submit = new QueuedObject(st, SyncDirection.DELETE, uri, pathname, uid);
 			mSubmitQueue.add(submit);
 			Log.i(TAG, "delete()");
-			manageQueue();
 			return submit.getUid();
 		}
 
@@ -281,13 +279,17 @@ public class SubmitService extends Service {
 			Log.i(TAG, "Starting to run sendToManagerThread");
 			// While there are submission requests in the Queue, service the queue
 			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(mSubmitQueue.size() > 0) { // TODO this is a bit brute force-ish, but it will do for the moment
+			while(!Thread.currentThread().isInterrupted()) { // TODO this is a bit brute force-ish, but it will do for the moment
 				try {
-					CommunicationState result = null;
-					if(mActiveRadio == null) {
-						Log.i(TAG, "No active radio. Exit RoutingThread.");
-						break;
+					if (mSubmitQueue.size() < 1) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							Log.e(TAG, e.getMessage());
+						}
+						continue;
 					}
+					CommunicationState result = null;
 					QueuedObject top = mSubmitQueue.getFirst();
 					
 					// Pass QueuedObject off to appropriate manager
@@ -307,10 +309,12 @@ public class SubmitService extends Service {
 					// another round, or pop it and throw an exception
 					switch(result) {
 						case SUCCESS:
+							Log.i(TAG, "Result was SUCCESS");
 							// Pop off the top
 							top = mSubmitQueue.pop();
 							// broadcast result to client app
 							broadcastStateToApp(result, top.getUid());
+							Log.i(TAG, "Thread has finished run()");
 							break;
 						case FAILURE:
 						case IN_PROGRESS:
@@ -327,13 +331,20 @@ public class SubmitService extends Service {
 							 */
 							break;
 					}
-					Thread.sleep(5); // TODO temporary time
-				} catch (InterruptedException e) {
-					Log.e(TAG, e.getMessage());
 				} catch (CommunicationException e) {
 					Log.e(TAG, e.getMessage());
-				}
+					return;
+				} 
+				// Add downtime
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					Log.e(TAG, e.getMessage());
+					break;
+				} // TODO temporary time
+				continue;
 			}
+			Log.i(TAG, "Thread has finished run()");
 		}
 		
 	};
