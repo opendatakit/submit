@@ -9,6 +9,10 @@ package org.opendatakit.submit.exceptions;
  *
  */
 public class MessageException extends Exception{
+	/**
+	 * Serial id
+	 */
+	private static final long serialVersionUID = -4351169752712536166L;
 	public MessageException() { super(); }
 	public MessageException(String message) { super(message); }
 	public MessageException(Throwable cause) { super(cause); }

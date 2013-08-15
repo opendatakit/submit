@@ -1,6 +1,6 @@
 package org.opendatakit.submit.receivers;
 
-import org.opendatakit.submit.scheduling.SubmitService;
+import org.opendatakit.submit.service.SubmitService;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
