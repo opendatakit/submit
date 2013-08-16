@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 
+import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.route.MessageManager;
 import org.opendatakit.submit.route.SyncManager;
 import org.opendatakit.submit.service.ClientRemote;
@@ -59,8 +60,7 @@ public class SubmitService extends Service {
 	protected static Thread mThread = null;
 	private SharedPreferences mPrefs = null;
 	private Resources mResources = null;
-	private MessageManager msgmang = null;
-	private SyncManager syncmang = null;
+	private CommunicationManager mCommManager = null;
 	
 	/*
 	 * Service methods
@@ -79,8 +79,7 @@ public class SubmitService extends Service {
 		mDataObjectMap = new HashMap<String, TupleElement<DataObject,SendObject>>();
 		
 		// Set up private vars
-		syncmang = new SyncManager(getApplicationContext());
-		msgmang = new MessageManager(getApplicationContext());
+		mCommManager = new CommunicationManager(getApplicationContext());
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
         
@@ -433,24 +432,29 @@ public class SubmitService extends Service {
 					}
 					CommunicationState result = null;
 					SubmitObject top = mSubmitQueue.getFirst();
+					// Check if there is an ordered element before
+					// passing it off to the CommunicationManager
 					
-					// Pass QueuedObject off to appropriate manager
-					// TODO figure out some routing rules here.
-					/*if(top.getType() == Types.SYNC) {
-						// Handle Sync data
-						// TODO see if any P2P mode has been specified
-						// result of communication over determined API
-						result = (CommunicationState)syncmang.executeTask(top, mActiveRadio);
-					} else if (top.getType() == Types.MESSAGE){
-						// Handle Message data
-						// result of communication over determined API
-						result = (CommunicationState)msgmang.executeTask(top, mActiveRadio);
-					}*/
+					result = (CommunicationState)mCommManager.executeTask(top, mActiveRadio);
+					
 					
 					// Depending on the resulting CommunicationState
 					// pop the top object off mSubmitQueue, keep it in for 
 					// another round, or pop it and throw an exception
 					switch(result) {
+						case PASS_TO_APP:
+							Log.i(TAG, "Result was PASS_TO_APP");
+							// This assumes that we should treat App-owned
+							// SubmitObjects the same as Submit-owned
+							// where we just pop off the top 
+							// If App encounters an issue while communicating
+							// they can figure out why and resubmit a
+							// submission request using submit() or register()
+							// Pop off the top
+							top = mSubmitQueue.pop();
+							// broadcast result to client app
+							broadcastStateToApp(result, top.getSubmitID());
+							break;
 						case SUCCESS:
 							Log.i(TAG, "Result was SUCCESS");
 							// Pop off the top
@@ -529,11 +533,11 @@ public class SubmitService extends Service {
 							networkInfo.getSubtype())) {
 						// "High speed" cellular connection
 						Log.i(TAG, "CELL enabled!");
-						mActiveRadio = Radio.CELL;
+						mActiveRadio = Radio.HIGH_BAND_CELL;
 					} else {
 						// Low speed cellular connection
 						Log.i(TAG, "GSM enabled!");
-						mActiveRadio = Radio.GSM;
+						mActiveRadio = Radio.LOW_BAND_CELL;
 					}
 
 				}

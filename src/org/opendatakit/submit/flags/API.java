@@ -18,7 +18,8 @@ public enum API implements Parcelable {
 	SMS, // SMS for messages only
 	GCM, // GCM for messages only
 	ODKv2, // ODKv2 for stored data
-	STUB; // for testing
+	STUB,
+	APP; // for testing
 
 	@Override
 	public int describeContents() {

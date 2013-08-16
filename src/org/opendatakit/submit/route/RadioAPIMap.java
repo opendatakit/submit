@@ -81,10 +81,10 @@ public class RadioAPIMap {
 				// Put the corresponding Enum Radio and API keys into the HashMap
 				String key = (String) e.getKey();
 				if (key.equals(StringRadio.CELL)) {
-					mAPIMap.put(Radio.CELL, apis);
+					mAPIMap.put(Radio.HIGH_BAND_CELL, apis);
 				}
 				else if (key.equals(StringRadio.GSM)) {
-					mAPIMap.put(Radio.GSM, apis);
+					mAPIMap.put(Radio.LOW_BAND_CELL, apis);
 				}
 				else if (key.equals(StringRadio.WIFI)) {
 					mAPIMap.put(Radio.WIFI, apis);

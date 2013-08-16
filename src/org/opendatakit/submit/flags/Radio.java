@@ -9,8 +9,8 @@ package org.opendatakit.submit.flags;
  *
  */
 public enum Radio {
-	GSM, // 2G for SMS
-	CELL, // 3G+ for IP 
+	LOW_BAND_CELL, // 2G for SMS
+	HIGH_BAND_CELL, // 3G+ for IP 
 	WIFI, // 802.11 for IP
 	P2P_WIFI, // 802.11 ad-hoc for IP
 	NFC // NFC for tags

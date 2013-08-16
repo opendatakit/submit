@@ -18,7 +18,8 @@ public enum CommunicationState implements Parcelable {
 	SUCCESS,
 	FAILURE,
 	IN_PROGRESS,
-	UNAVAILABLE;
+	UNAVAILABLE,
+	PASS_TO_APP;
 	
 	@Override
 	public int describeContents() {

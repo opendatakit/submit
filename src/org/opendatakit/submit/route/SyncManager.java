@@ -20,7 +20,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 
-public class SyncManager implements CommunicationInterface {
+public class SyncManager {
 
 	private RadioAPIMap mRAMap = null;
 	private ArrayList<API> mAPIList = null;
@@ -39,7 +39,7 @@ public class SyncManager implements CommunicationInterface {
 	 * @param queuedobj
 	 * @param radio
 	 */
-	@Override
+
 	public Object executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
 		if (mRAMap.keyExists(radio)) {

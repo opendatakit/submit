@@ -16,7 +16,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-public class MessageManager implements CommunicationInterface {
+public class MessageManager {
 
 	private RadioAPIMap mRAMap = null;
 	private ArrayList<API> mAPIList = null;
@@ -28,7 +28,7 @@ public class MessageManager implements CommunicationInterface {
 		
 	}
 
-	@Override
+
 	public Object executeTask(QueuedObject queuedobj, Radio radio)
 			throws CommunicationException {
 		if (mRAMap.keyExists(radio)) {
@@ -73,6 +73,7 @@ public class MessageManager implements CommunicationInterface {
 	private API whichAPI(ArrayList<API> apis, QueuedObject queuedobj) {
 		// TODO: Add more here when modular APIs are established
 		// For now, return STUB API no matter what
+		
 		return API.STUB;
 	}
 	
