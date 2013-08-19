@@ -2,8 +2,12 @@ package com.example.stubapp;
 
 import java.util.List;
 
-import org.opendatakit.submit.flags.SyncType;
-import org.opendatakit.submit.scheduling.ClientRemote;
+import org.opendatakit.submit.address.HttpAddress;
+import org.opendatakit.submit.data.DataObject;
+import org.opendatakit.submit.data.SendObject;
+import org.opendatakit.submit.exceptions.InvalidAddressException;
+import org.opendatakit.submit.flags.API;
+import org.opendatakit.submit.service.ClientRemote;
 
 import android.os.Bundle;
 import android.os.IBinder;
@@ -33,6 +37,10 @@ public class MainActivity extends Activity {
 	private int mUID;
 	private IntentFilter mFilter = null;
 	private BroadcastReceiver myBroadcastReceiver = null;
+	
+	// For testing
+	private DataObject mData = null;
+	private SendObject mSend = null;
 	
 	/* ServiceConnection with SubmitService */
 	protected ServiceConnection mServiceCnxn = new ServiceConnection() {
@@ -66,6 +74,17 @@ public class MainActivity extends Activity {
 		mFilter = new IntentFilter();
 		mFilter.addAction(Integer.toString(mUID));
 		mFilter.addCategory(Intent.CATEGORY_DEFAULT);
+		mData = new DataObject();
+		mData.setDataPath(""); // TODO
+		mSend = new SendObject();
+		try {
+			HttpAddress addr = new HttpAddress("http://localhost/");
+			mSend.addAddress(addr);
+			mSend.addAPI(API.STUB);
+		} catch (InvalidAddressException e) {
+			Log.e(TAG, e.getMessage());
+		} // TODO!!!
+		
 		myBroadcastReceiver = new BroadcastReceiver() {
 
 			@Override
@@ -111,24 +130,34 @@ public class MainActivity extends Activity {
 		/*
 		 * Set up buttons
 		 */
-		final Button btn_Create = (Button) findViewById(R.id.bt_create);
-		final Button btn_Download = (Button) findViewById(R.id.bt_download);
-		final Button btn_Sync = (Button) findViewById(R.id.bt_sync);
+		final Button btn_Submit = (Button) findViewById(R.id.bt_submit);
+		final Button btn_Register = (Button) findViewById(R.id.bt_register);
 		final Button btn_Delete = (Button) findViewById(R.id.bt_delete);
-		final Button btn_Send = (Button) findViewById(R.id.bt_send);
 		//final Button btn_OnQueue = (Button) findViewById(R.id.bt_onQueue);
 		final Button btn_QueueSize = (Button) findViewById(R.id.bt_size);
 		
 		/*
 		 * set OnClickListeners for the test buttons
 		 */
-		btn_Create.setOnClickListener(new View.OnClickListener() {
+		btn_Submit.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
+				BroadcastReceiver SubmitBroadcastReceiver = new BroadcastReceiver() {
+
+					@Override
+					public void onReceive(Context context, Intent intent) {
+						Log.d(TAG, "onReceive triggered by SubmitService");
+						Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
+					}
+					
+				};
+				IntentFilter SubmitFilter = new IntentFilter();
 				try {
-					String state = "";
-					state = mService.create(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					String objid = "";
+					objid = mService.submit(Integer.toString(mUID), mData, mSend);
+					SubmitFilter.addAction(objid);
+					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
 				} catch (RemoteException e) {
 					String err = (e.getMessage() == null)?"RemoteException":e.getMessage();
 					Log.e(TAG, err);
@@ -140,29 +169,25 @@ public class MainActivity extends Activity {
 			}
 		});
 		
-		btn_Download.setOnClickListener(new View.OnClickListener() {
+		btn_Register.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				String state = null;
+				BroadcastReceiver SubmitBroadcastReceiver = new BroadcastReceiver() {
+
+					@Override
+					public void onReceive(Context context, Intent intent) {
+						Log.d(TAG, "onReceive triggered by SubmitService");
+						Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
+					}
+					
+				};
+				IntentFilter SubmitFilter = new IntentFilter();
+				String objid = null;
 				try {
-					state = mService.download(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-				} catch (RemoteException e) {
-					Log.e(TAG, e.getMessage());
-				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
-				}
-
-			}
-		});
-
-		btn_Sync.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				String state = null;
-				try {
-					state = mService.sync(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					objid = mService.register(Integer.toString(mUID), mData);
+					SubmitFilter.addAction(objid);
+					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
@@ -176,9 +201,8 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				String state = null;
 				try {
-					state = mService.delete(SyncType.DATABASE, "http://localhost", "/mnt/sdcard", Integer.toString(mUID));
+					mService.delete(Integer.toString(mUID));
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
@@ -188,21 +212,6 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		btn_Send.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				String state;
-				try {
-					state = mService.send("http://localhost", "/mnt/sdcard", Integer.toString(mUID));
-				} catch (RemoteException e) {
-					Log.e(TAG, e.getMessage());
-				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
-				}
-
-			}
-		});
 		
 		/* TODO
 		 btn_OnQueue.setOnClickListener(new View.OnClickListener() {
@@ -225,8 +234,10 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				try {
+					
 					int state;
 					state = mService.queueSize();
+					
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {

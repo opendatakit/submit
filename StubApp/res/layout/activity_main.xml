@@ -17,45 +17,30 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical" >
 
-        <Button
-            android:id="@+id/bt_create"
+        <EditText
+            android:id="@+id/txt_msg"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create" />
+            android:ems="10"
+            android:hint="Message" />
 
         <Button
-            android:id="@+id/bt_download"
+            android:id="@+id/bt_submit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Download" />
+            android:text="Submit" />
 
         <Button
-            android:id="@+id/bt_sync"
+            android:id="@+id/bt_register"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sync" />
+            android:text="Register" />
 
         <Button
             android:id="@+id/bt_delete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Delete" />
-
-        <EditText
-            android:id="@+id/txt_msg"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="Message" >
-
-            <requestFocus />
-        </EditText>
-
-        <Button
-            android:id="@+id/bt_send"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Send" />
 
         <Button
             android:id="@+id/bt_size"

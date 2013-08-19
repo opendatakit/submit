@@ -1,5 +1,9 @@
 package org.opendatakit.submit.flags;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.Parcelable.Creator;
+
 /**
  * API
  * List of API resources available to use with Submit.
@@ -10,9 +14,32 @@ package org.opendatakit.submit.flags;
  * @author mvigil
  * 
  */
-public enum API {
+public enum API implements Parcelable {
 	SMS, // SMS for messages only
 	GCM, // GCM for messages only
 	ODKv2, // ODKv2 for stored data
-	STUB // for testing
+	STUB,
+	APP; // for testing
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(ordinal());
+	}
+	
+	public static final Creator<API> CREATOR = new Creator<API>() {
+        @Override
+        public API createFromParcel(final Parcel source) {
+            return API.values()[source.readInt()];
+        }
+ 
+        @Override
+        public API[] newArray(final int size) {
+            return new API[size];
+        }
+    };
 }
