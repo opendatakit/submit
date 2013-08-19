@@ -124,6 +124,8 @@ public class SubmitService extends Service {
 		@Override
 		public String submit(String app_uid, DataObject data, SendObject send)
 				throws RemoteException {
+			
+			Log.i(TAG, "In submit()");
 			SubmitObject submit = new SubmitObject(app_uid, data, send);
 			ArrayList<String> submitids = new ArrayList<String>();
 			
@@ -132,6 +134,7 @@ public class SubmitService extends Service {
 			// submissions on the queue
 			if(mSubmitMap.containsKey(app_uid)) {
 				// If it does, add the SubmitID to the list of SubmitID's
+				Log.i(TAG, "app_id already exists");
 				submitids = mSubmitMap.get(app_uid);
 			}
 			submitids.add(submit.getSubmitID());
@@ -154,6 +157,8 @@ public class SubmitService extends Service {
 		@Override
 		public String register(String app_uid, DataObject data)
 				throws RemoteException {
+			Log.i(TAG, "In register()");
+			
 			SubmitObject submit = new SubmitObject(app_uid, data, null);
 			ArrayList<String> submitids = new ArrayList<String>();
 			
@@ -183,11 +188,13 @@ public class SubmitService extends Service {
 		
 		@Override
 		public int queueSize() throws RemoteException {
+			Log.i(TAG, "In queueSize()");
 			return mSubmitQueue.size();
 		}
 		
 		@Override
 		public boolean onQueue(String submit_uid) throws RemoteException {
+			Log.i(TAG, "In onQueue()");
 			return mDataObjectMap.containsKey(submit_uid);		
 		}
 		
@@ -227,6 +234,7 @@ public class SubmitService extends Service {
 		@Override
 		public void delete(String submit_uid )
 				throws RemoteException {
+			Log.i(TAG, "In delete()");
 			// Remove from mSubmitQueue and mSubmitMap
 			for(SubmitObject submit : mSubmitQueue ) {
 				if(submit.getSubmitID().equals(submit_uid)) {
@@ -419,7 +427,9 @@ public class SubmitService extends Service {
 
 				}
 			} catch (Exception e) {
-				Log.e(TAG, e.getMessage());
+				String err = (e.getMessage() == null)?"Exception":e.getMessage();
+				Log.e(TAG, err);
+				e.printStackTrace();
 			}
 			
 		}
