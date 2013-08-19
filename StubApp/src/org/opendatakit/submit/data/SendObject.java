@@ -15,6 +15,8 @@ public class SendObject implements Parcelable {
 	// constructors
 	public SendObject() {
 		// Empty constructor
+		mAddresses = new ArrayList<DestinationAddress>();
+		mAPIs = new ArrayList<API>();
 	}
 	
 	public SendObject(Parcel in) {

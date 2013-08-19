@@ -1,5 +1,6 @@
 package com.example.stubapp;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.opendatakit.submit.address.HttpAddress;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity {
 	private int mUID;
 	private IntentFilter mFilter = null;
 	private BroadcastReceiver myBroadcastReceiver = null;
+	private ArrayList<BroadcastReceiver> mReceiverList = null;
 	
 	// For testing
 	private DataObject mData = null;
@@ -47,15 +49,22 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			mService = ClientRemote.Stub.asInterface((IBinder) service);	
-			mBound = true;
+			Log.i(TAG, "onServiceConnected");
+			mService = ClientRemote.Stub.asInterface((IBinder) service);
+			
+			// Set up buttons that call remote functions
+			// here as remote calls cannot be ade until
+			// onServiceConnection has been called and 
+			// mService has been instantiated.
+			
+			/* Set up buttons */
+			setupView();
 			
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
 			mService = null;
-			mBound = false;
 		}
 		
 	};
@@ -84,37 +93,31 @@ public class MainActivity extends Activity {
 		} catch (InvalidAddressException e) {
 			Log.e(TAG, e.getMessage());
 		} // TODO!!!
-		
-		myBroadcastReceiver = new BroadcastReceiver() {
+		mReceiverList = new ArrayList<BroadcastReceiver>();
 
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Log.d(TAG, "onReceive triggered by SubmitService");
-				Toast.makeText(getApplicationContext(), "API triggered", Toast.LENGTH_SHORT).show();
-			}
-			
-		};
+		// Bind to the service
+		Log.i(TAG, "Binding to service");
+		Intent intent = new Intent(
+				"org.opendatakit.submit.scheduling.ClientRemote");
+		getApplicationContext().bindService(intent, mServiceCnxn,
+				Context.BIND_AUTO_CREATE);
 		
-		/* Set up buttons */
-		setupView();
-		
-		/* Register BroadcastReceiver */
-		this.getApplicationContext().registerReceiver(myBroadcastReceiver, mFilter);
 	}
 
 	@Override
 	public void onStart() {
+		Log.i(TAG, "onStart()");
 		super.onStart();
-		
-		//Bind to the service
-		Intent intent = new Intent("org.opendatakit.submit.scheduling.ClientRemote");
-		bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
 	}
 	
 	@Override
 	public void onDestroy() {
 		Log.i(TAG, "onDestroy() MainActivity StubApp");
-		this.getApplicationContext().unregisterReceiver(myBroadcastReceiver);
+		// Unregister all receivers
+		for(BroadcastReceiver receiver : mReceiverList) {
+			this.getApplicationContext().unregisterReceiver(receiver);
+		}
+		// Register receivers
 		this.getApplicationContext().unbindService(mServiceCnxn);
 	}
 	@Override
@@ -158,13 +161,16 @@ public class MainActivity extends Activity {
 					objid = mService.submit(Integer.toString(mUID), mData, mSend);
 					SubmitFilter.addAction(objid);
 					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
+					mReceiverList.add(SubmitBroadcastReceiver);
+					
 				} catch (RemoteException e) {
 					String err = (e.getMessage() == null)?"RemoteException":e.getMessage();
 					Log.e(TAG, err);
 				} catch (Exception e) {
 					String err = (e.getMessage() == null)?"Exception":e.getMessage();
 					Log.e(TAG, err);
-				}
+					e.printStackTrace();
+				} 
 
 			}
 		});
@@ -188,10 +194,13 @@ public class MainActivity extends Activity {
 					objid = mService.register(Integer.toString(mUID), mData);
 					SubmitFilter.addAction(objid);
 					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
+					mReceiverList.add(SubmitBroadcastReceiver);
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
 				}
 
 			}
@@ -206,7 +215,9 @@ public class MainActivity extends Activity {
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
 				}
 
 			}
@@ -237,42 +248,19 @@ public class MainActivity extends Activity {
 					
 					int state;
 					state = mService.queueSize();
+					Log.i(TAG, "SubmitQueue.size() = " + state);
 					
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
 				}
 
 			}
 		});
 	}
 	
-	private void initConnection() {
-		Log.i(TAG, "Connecting to SubmitService...");
-		/* Define Service connection */
-		mServiceCnxn = new ServiceConnection() {
-
-			@Override
-			public void onServiceConnected(ComponentName name, IBinder service) {
-				mService = ClientRemote.Stub.asInterface((IBinder) service);	
-				Log.i("ClientRemote", "Binding is done - Service connected");
-				
-			}
-
-			@Override
-			public void onServiceDisconnected(ComponentName name) {
-				mService = null;
-				Log.i("ClientRemote", "Binding - Service disconnected");
-			}
-			
-		};
-		
-	}
-	
-	private boolean bindToSubmitService() {
-		Intent intent = new Intent("org.opendatakit.submit.scheduling.ClientRemote");
-		return bindService(intent, mServiceCnxn, Context.BIND_AUTO_CREATE);
-	}
 
 }
