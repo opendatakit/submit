@@ -9,35 +9,22 @@ import org.opendatakit.submit.flags.SyncType;
 import org.opendatakit.submit.interfaces.MessageInterface;
 import org.opendatakit.submit.interfaces.SyncInterface;
 
-public class SubmitAPI implements SyncInterface, MessageInterface {
+public class SubmitAPI {
 
-	@Override
-	public Object send(String dest, String msg, String uid) throws IOException,
-			MessageException {
+
+	public Object get() {
 		return CommunicationState.SUCCESS;
 	}
 
-	@Override
-	public Object create(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
+
+	public Object put() {
 		return CommunicationState.SUCCESS;
 	}
 
-	@Override
-	public Object download(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		return CommunicationState.SUCCESS;
-	}
+	// TODO 
 
-	@Override
-	public Object delete(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
-		return CommunicationState.SUCCESS;
-	}
 
-	@Override
-	public Object sync(SyncType st, String dest, String pathname, String uid)
-			throws IOException, SyncException {
+	public Object delete() {
 		return CommunicationState.SUCCESS;
 	}
 

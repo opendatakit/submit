@@ -53,16 +53,12 @@ public class CommunicationManager implements CommunicationInterface {
 			}
 			switch(api) {
 			case STUB:
+				return CommunicationState.SUCCESS;
 			case SMS:
 			case GCM:
 			default:
-				try {
-					return mSubmitAPI.send(getAddress(api, submitobj.getAddress().getAddresses()), submitobj.getData().getDataPath(), submitobj.getSubmitID());
-				} catch(MessageException me) {
-					Log.e("MessageManager", me.getMessage());
-				} catch(IOException ioe) {
-					Log.e("MessageManager", ioe.getMessage());
-				}
+				// TODO other calls to real APIs would go here.
+				return CommunicationState.UNAVAILABLE;
 			}
 		} // The channel is innapropriate for the data
 		return CommunicationState.UNAVAILABLE;
