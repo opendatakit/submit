@@ -105,9 +105,9 @@ public class DataObject implements Parcelable {
 		booleanFields[3] = mResponseRequired;
 		
 		dest.writeString(mPath);
-		dest.writeParcelable(mDataSize, flags);
+		dest.writeString(mDataSize.toString());
 		dest.writeBooleanArray(booleanFields);
-		dest.writeParcelable(mResponseSize, flags);
+		dest.writeString(mResponseSize.toString());
 		
 	}
 	
@@ -117,7 +117,7 @@ public class DataObject implements Parcelable {
 		// Important this is in the same order that Parcel is written
 		// in writeToParcel()
 		setDataPath(in.readString());
-		setDataSize((DataSize)in.readParcelable(null));
+		setDataSize(DataSize.valueOf(in.readString()));
 		
 		boolean[] booleanFields = new boolean[NUMBER_BOOL_FIELDS];
 		in.readBooleanArray(booleanFields);
@@ -126,7 +126,7 @@ public class DataObject implements Parcelable {
 		setOrdered(booleanFields[2]);
 		setResponseRequired(booleanFields[3]);
 		
-		setResponseSize((DataSize)in.readParcelable(null));
+		setResponseSize(DataSize.valueOf(in.readString()));
 	}
 	
 	public static final Parcelable.Creator<DataObject> CREATOR =

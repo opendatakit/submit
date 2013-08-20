@@ -4,7 +4,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.Parcelable.Creator;
 
-// TODO Parcelable
 public enum DataSize implements Parcelable {
 	SMALL,
 	NORMAL,
@@ -33,9 +32,4 @@ public enum DataSize implements Parcelable {
             return new DataSize[size];
         }
     };
-    
-    public void readFromParcel(Parcel in) {
-		// TODO Auto-generated method stub
-		
-	}
 }

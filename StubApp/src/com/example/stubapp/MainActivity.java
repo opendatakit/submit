@@ -3,6 +3,7 @@ package com.example.stubapp;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opendatakit.submit.address.DestinationAddress;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
@@ -12,6 +13,7 @@ import org.opendatakit.submit.service.ClientRemote;
 
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.ParcelFormatException;
 import android.os.RemoteException;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -87,7 +89,8 @@ public class MainActivity extends Activity {
 		mData.setDataPath(""); // TODO
 		mSend = new SendObject();
 		try {
-			HttpAddress addr = new HttpAddress("http://localhost/");
+			DestinationAddress addr = new DestinationAddress();
+			addr.setAddress("http://localhost/");
 			mSend.addAddress(addr);
 			mSend.addAPI(API.STUB);
 		} catch (InvalidAddressException e) {
@@ -98,7 +101,7 @@ public class MainActivity extends Activity {
 		// Bind to the service
 		Log.i(TAG, "Binding to service");
 		Intent intent = new Intent(
-				"org.opendatakit.submit.scheduling.ClientRemote");
+				"org.opendatakit.submit.service.ClientRemote");
 		getApplicationContext().bindService(intent, mServiceCnxn,
 				Context.BIND_AUTO_CREATE);
 		
@@ -157,6 +160,7 @@ public class MainActivity extends Activity {
 				};
 				IntentFilter SubmitFilter = new IntentFilter();
 				try {
+					Log.i(TAG, "onClick() for submit()");
 					String objid = "";
 					objid = mService.submit(Integer.toString(mUID), mData, mSend);
 					SubmitFilter.addAction(objid);
@@ -191,6 +195,7 @@ public class MainActivity extends Activity {
 				IntentFilter SubmitFilter = new IntentFilter();
 				String objid = null;
 				try {
+					Log.i(TAG, "onClick() for register()");
 					objid = mService.register(Integer.toString(mUID), mData);
 					SubmitFilter.addAction(objid);
 					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
@@ -211,6 +216,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				try {
+					Log.i(TAG, "onClick() for delete()");
 					mService.delete(Integer.toString(mUID));
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());

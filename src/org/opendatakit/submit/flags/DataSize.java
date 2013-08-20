@@ -18,7 +18,6 @@ public enum DataSize implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		// TODO Auto-generated method stub
 		dest.writeInt(ordinal());
 	} 
 	
@@ -34,8 +33,4 @@ public enum DataSize implements Parcelable {
         }
     };
     
-    public void readFromParcel(Parcel in) {
-		// TODO Auto-generated method stub
-		
-	}
 }

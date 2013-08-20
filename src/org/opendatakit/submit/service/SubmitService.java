@@ -8,8 +8,6 @@ import java.util.Set;
 
 
 import org.opendatakit.submit.route.CommunicationManager;
-import org.opendatakit.submit.route.MessageManager;
-import org.opendatakit.submit.route.SyncManager;
 import org.opendatakit.submit.service.ClientRemote;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.data.DataObject;
@@ -364,7 +362,8 @@ public class SubmitService extends Service {
 							break;
 					}
 				} catch (Exception e) {
-					Log.e(TAG, e.getMessage());
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					e.printStackTrace();
 					return;
 				} 
 				// Add downtime

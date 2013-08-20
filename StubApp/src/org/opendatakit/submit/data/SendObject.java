@@ -20,6 +20,7 @@ public class SendObject implements Parcelable {
 	}
 	
 	public SendObject(Parcel in) {
+		this();
 		readFromParcel(in);
 	}
 	
@@ -58,41 +59,30 @@ public class SendObject implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		DestinationAddress[] addrarray = new DestinationAddress[mAddresses.size()];
-		int position = 0;
-		
-		// Go through all addresses and write them
-		// into a Parcelable form
-		for(DestinationAddress addr : mAddresses) {
-			addrarray[position] = addr;
-			position++;
-		}
-		dest.writeParcelableArray(addrarray, flags);
-		
-		// Go through all APIs and write them
-		// into a Parcelable form
-		API[] apiarray = new API[mAPIs.size()];
-		position = 0;
+		// Convert API enums to API strings
+		ArrayList<String> strapi = new ArrayList<String>();
 		for(API api : mAPIs) {
-			apiarray[position] = api;
-			position++;
+			strapi.add(api.toString());
 		}
-		dest.writeParcelableArray(apiarray, flags);
+		// Write ArrayList<DestinationAddress>
+		dest.writeTypedList(mAddresses);
+		// Write ArrayList<String> version of mAPIs
+		dest.writeStringList(strapi);
 	}
 	
 	public void readFromParcel(Parcel in) {
-		DestinationAddress[] addrarray = null;
-		API[] apiarray = null;
+		mAPIs = new ArrayList<API>();
+		mAddresses = new ArrayList<DestinationAddress>();
 		
-		addrarray = (DestinationAddress[])in.readParcelableArray(null);
-		apiarray = (API[])in.readParcelableArray(null);
+		ArrayList<String> strapi = new ArrayList<String>();
+		// Read ArrayList<DestinationAddress>
+		in.readTypedList(mAddresses, DestinationAddress.CREATOR);
+		// Read ArrayList<String> representation of APIs
+		in.readStringList(strapi);
 		
-		for(DestinationAddress addr : addrarray) {
-			mAddresses.add(addr);
-		}
-		
-		for(API api : apiarray) {
-			mAPIs.add(api);
+		// Convert API strings to API enum
+		for(String api : strapi) {
+			mAPIs.add(API.valueOf(api));
 		}
 		
 	}

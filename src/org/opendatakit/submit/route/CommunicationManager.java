@@ -76,31 +76,35 @@ public class CommunicationManager implements CommunicationInterface {
 		DataSize response = data.getResponseSize();
 		boolean reliable = data.isReliable();
 		boolean resp_required = data.isResponseRequired();
-		
-		switch(radio) {
-		case LOW_BAND_CELL:
-				if(size != DataSize.SMALL) {
+		if (radio != null) {
+			switch (radio) {
+			case LOW_BAND_CELL:
+				if (size != DataSize.SMALL) {
 					return false;
 				}
 				// TODO add more here if necessary
 				return true;
-		case HIGH_BAND_CELL:
+			case HIGH_BAND_CELL:
 				// TODO this is where factoring
 				// in price will be critical as well
-				if(size == DataSize.LARGE) {
-					return false;
-				} if(response == DataSize.LARGE) {
+				if (size == DataSize.LARGE) {
 					return false;
 				}
-		case WIFI:
-			return true;
-		case P2P_WIFI:
-			// TODO for now
-			return false;
-		case NFC:
-			return false;
-		default:
+				if (response == DataSize.LARGE) {
+					return false;
+				}
+			case WIFI:
+				return true;
+			case P2P_WIFI:
+				// TODO for now
 				return false;
+			case NFC:
+				return false;
+			default:
+				return false;
+			}
+		} else {
+			return false;
 		}
 	}
 
