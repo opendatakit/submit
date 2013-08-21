@@ -241,6 +241,7 @@ public class SubmitService extends Service {
 					String appid = submit.getAppID();
 					ArrayList<String> submitids = mSubmitMap.get(appid);
 					submitids.remove(submit_uid);
+					mSubmitMap.put(appid, submitids);
 					
 					// Remove from mSumitQueue
 					mSubmitQueue.remove(submit);
@@ -342,11 +343,21 @@ public class SubmitService extends Service {
 							Log.i(TAG, "Result was SUCCESS");
 							// Pop off the top
 							top = mSubmitQueue.pop();
+							// Delete
+							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
 							broadcastStateToApp(result, top.getSubmitID());
 							Log.i(TAG, "Thread has finished run()");
 							break;
 						case FAILURE:
+							Log.i(TAG, "Result was FAILURE");
+							// Pop off the top
+							top = mSubmitQueue.pop();
+							// Delete
+							mBinder.delete(top.getSubmitID());
+							// broadcast result to client app
+							broadcastStateToApp(result, top.getSubmitID());
+							break;
 						case IN_PROGRESS:
 						case UNAVAILABLE:
 							// broadcast result to client app

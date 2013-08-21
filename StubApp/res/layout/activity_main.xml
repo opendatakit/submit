@@ -48,6 +48,30 @@
             android:layout_height="wrap_content"
             android:text="QueueSize" />
 
+        <Button
+            android:id="@+id/btn_onqueue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="OnQueue" />
+
+        <Button
+            android:id="@+id/btn_getdataobj"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GetDataObject" />
+
+        <Button
+            android:id="@+id/btn_getsendobj"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GetSendObject" />
+
+        <Button
+            android:id="@+id/btn_getqueued"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="GetQueued" />
+
     </LinearLayout>
 
 </RelativeLayout>

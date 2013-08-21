@@ -89,8 +89,9 @@ public class MainActivity extends Activity {
 		mData.setDataPath(""); // TODO
 		mSend = new SendObject();
 		try {
-			DestinationAddress addr = new DestinationAddress();
-			addr.setAddress("http://localhost/");
+			/*DestinationAddress addr = new DestinationAddress();*/
+			HttpAddress addr = new HttpAddress("http://localhost/");
+			/*addr.setAddress("http://localhost/");*/
 			mSend.addAddress(addr);
 			mSend.addAPI(API.STUB);
 		} catch (InvalidAddressException e) {
@@ -139,8 +140,11 @@ public class MainActivity extends Activity {
 		final Button btn_Submit = (Button) findViewById(R.id.bt_submit);
 		final Button btn_Register = (Button) findViewById(R.id.bt_register);
 		final Button btn_Delete = (Button) findViewById(R.id.bt_delete);
-		//final Button btn_OnQueue = (Button) findViewById(R.id.bt_onQueue);
+		final Button btn_OnQueue = (Button) findViewById(R.id.btn_onqueue);
 		final Button btn_QueueSize = (Button) findViewById(R.id.bt_size);
+		final Button btn_GetQueued = (Button) findViewById(R.id.btn_getqueued);
+		final Button btn_GetData = (Button) findViewById(R.id.btn_getdataobj);
+		final Button btn_GetSend = (Button) findViewById(R.id.btn_getsendobj);   
 		
 		/*
 		 * set OnClickListeners for the test buttons
@@ -230,21 +234,24 @@ public class MainActivity extends Activity {
 		});
 
 		
-		/* TODO
+		
 		 btn_OnQueue.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				boolean state;
+				String uid;
 				try {
-					state = mService.onQueue("uid");
-					Log.d(TAG, "State of SubmitAPI.queueSize -- " + state);
+					/* Test that something is on the queue */
+					uid = mService.register(Integer.toString(mUID), mData);
+					state = mService.onQueue(uid);
+					Log.i(TAG, "onQueue("+uid+") = " + Boolean.toString(state));
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				}
 
 			}
-		});*/
+		});
 		
 		btn_QueueSize.setOnClickListener(new View.OnClickListener() {
 
@@ -266,7 +273,83 @@ public class MainActivity extends Activity {
 
 			}
 		});
+		
+		btn_GetQueued.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				try {
+					String[] queuedSubmissions = mService.getQueuedSubmissions(Integer.toString(mUID));
+					for(String submission :  queuedSubmissions) {
+						Log.i(TAG, "getQueuedSubmissions(): " + submission);
+					}
+				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
+				}
+				
+			}
+			
+		});
+		
+		btn_GetData.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				String objid = "";
+				DataObject data = null;
+				try {
+					/* Test that something is on the queue */
+					objid = mService.register(Integer.toString(mUID), mData);
+					data = mService.getDataObjectById(objid);
+					if(data!=null) {
+						Log.i(TAG, "getDataObjectById("+objid+") : Successful!)");
+					} else {
+						Log.i(TAG, "getDataObjectById("+objid+") : Not on Queue!)");
+					}
+					
+				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
+				}
+				
+			}
+			
+		});
+		
+		btn_GetSend.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				SendObject send = null;
+				try {
+					String objid = "";
+					objid = mService.submit(Integer.toString(mUID), mData, mSend);
+					send = mService.getSendObjectById(objid);
+					if(send!=null) {
+						Log.i(TAG, "getSendObjectById("+objid+") : Successful!)");
+					} else {
+						Log.i(TAG, "getSendObjectById("+objid+") : Not on Queue!)");
+					}
+				} catch (RemoteException e) {
+					Log.e(TAG, e.getMessage());
+				} catch (Exception e) {
+					String err = (e.getMessage() == null)?"Exception":e.getMessage();
+					Log.e(TAG, err);
+					e.printStackTrace();
+				}
+			}
+			
+		});
 	}
+	
+	
 	
 
 }
