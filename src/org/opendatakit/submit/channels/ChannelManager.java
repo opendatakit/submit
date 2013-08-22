@@ -1,12 +1,14 @@
 package org.opendatakit.submit.channels;
 
 import org.opendatakit.submit.flags.DataSize;
+import org.opendatakit.submit.flags.Radio;
 
-public class CommunicationChannel {
-	long mCostPerMbps;
-	DataSize mBandwidth;
+public class ChannelManager {
+	private long mCostPerMbps;
+	private double mBandwidth;
+	private boolean mEnabled = false;
 	
-	public CommunicationChannel(DataSize bandwidth ) {
+	public ChannelManager(double bandwidth ) {
 		mBandwidth = bandwidth;
 		// TODO get cost from a properties file
 	}
@@ -16,8 +18,16 @@ public class CommunicationChannel {
 		return mCostPerMbps;
 	}
 	
-	public DataSize getBandwidth() {
+	public double getBandwidth() {
 		return mBandwidth;
+	}
+	
+	public void enable() {
+		mEnabled = true;
+	}
+	
+	public void disable() {
+		mEnabled = false;
 	}
 	
 	// Setters
