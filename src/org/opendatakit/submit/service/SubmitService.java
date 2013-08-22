@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
-import org.opendatakit.submit.route.CommunicationManager;
-import org.opendatakit.submit.service.ClientRemote;
-import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
+import org.opendatakit.submit.route.CommunicationManager;
+import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;

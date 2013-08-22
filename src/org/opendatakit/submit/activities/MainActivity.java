@@ -2,8 +2,8 @@ package org.opendatakit.submit.activities;
 
 import org.opendatakit.submit.R;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.Menu;
 
 public class MainActivity extends Activity {

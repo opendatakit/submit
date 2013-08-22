@@ -2,7 +2,6 @@ package org.opendatakit.submit.flags;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.Parcelable.Creator;
 
 /**
  * State of the communication based on the

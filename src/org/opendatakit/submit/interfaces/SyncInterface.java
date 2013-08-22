@@ -1,6 +1,7 @@
 package org.opendatakit.submit.interfaces;
 
 import java.io.IOException;
+
 import org.opendatakit.submit.exceptions.SyncException;
 import org.opendatakit.submit.flags.SyncType;
 

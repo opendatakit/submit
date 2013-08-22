@@ -1,6 +1,5 @@
 package org.opendatakit.submit.route;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.opendatakit.submit.address.DestinationAddress;
@@ -8,7 +7,6 @@ import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.CommunicationException;
-import org.opendatakit.submit.exceptions.MessageException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.DataSize;
@@ -17,7 +15,6 @@ import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.content.Context;
-import android.util.Log;
 
 /**
  * Routes SubmitObjects based on data properties
