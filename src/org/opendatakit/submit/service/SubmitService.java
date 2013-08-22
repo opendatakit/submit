@@ -334,15 +334,13 @@ public class SubmitService extends Service {
 							// If App encounters an issue while communicating
 							// they can figure out why and resubmit a
 							// submission request using submit() or register()
-							// Pop off the top
-							top = mSubmitQueue.pop();
 							// broadcast result to client app
 							broadcastStateToApp(result, top.getSubmitID());
+							// Delete
+							mBinder.delete(top.getSubmitID());
 							break;
 						case SUCCESS:
 							Log.i(TAG, "Result was SUCCESS");
-							// Pop off the top
-							top = mSubmitQueue.pop();
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
@@ -351,8 +349,6 @@ public class SubmitService extends Service {
 							break;
 						case FAILURE:
 							Log.i(TAG, "Result was FAILURE");
-							// Pop off the top
-							top = mSubmitQueue.pop();
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app

@@ -280,8 +280,12 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				try {
 					String[] queuedSubmissions = mService.getQueuedSubmissions(Integer.toString(mUID));
-					for(String submission :  queuedSubmissions) {
-						Log.i(TAG, "getQueuedSubmissions(): " + submission);
+					if(queuedSubmissions!=null){
+						for (String submission : queuedSubmissions) {
+							Log.i(TAG, "getQueuedSubmissions(): " + submission);
+						}
+					} else {
+						Log.i(TAG, "getQueuedSubmissions(): No outstanding submissions.");
 					}
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
