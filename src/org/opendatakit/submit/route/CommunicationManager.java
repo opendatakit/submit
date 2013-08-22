@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.opendatakit.submit.address.DestinationAddress;
 import org.opendatakit.submit.data.DataObject;
-import org.opendatakit.submit.data.QueuedObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.CommunicationException;
@@ -20,6 +19,12 @@ import org.opendatakit.submit.stubapi.SubmitAPI;
 import android.content.Context;
 import android.util.Log;
 
+/**
+ * Routes SubmitObjects based on data properties
+ * and available channel properties and API compatibility.
+ * @author mvigil
+ *
+ */
 public class CommunicationManager implements CommunicationInterface {
 	SubmitObject mSubmitObject = null;
 	Radio mRadio = null;
@@ -69,6 +74,17 @@ public class CommunicationManager implements CommunicationInterface {
 		return null;
 	}
 
+	/**
+	 * This is the function that makes most of the "routing"
+	 * decisions for the CommunicationManager.
+	 * Eventually, I want to be able to read from a properties
+	 * file in order to do do some more customizable rules
+	 * pertaining to cost. 
+	 * 
+	 * @param radio
+	 * @param data
+	 * @return
+	 */
 	private boolean dataFitsChannel(Radio radio, DataObject data) {
 		// Here we do not consider order as it is dealt with
 		// before being pushed to the CommunicationManager

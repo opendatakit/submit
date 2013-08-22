@@ -1,27 +1,19 @@
 package org.opendatakit.submit.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Set;
 
 
 import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.service.ClientRemote;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 import org.opendatakit.submit.data.DataObject;
-import org.opendatakit.submit.data.QueuedObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
-import org.opendatakit.submit.exceptions.CommunicationException;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
-import org.opendatakit.submit.flags.SyncDirection;
-import org.opendatakit.submit.flags.SyncType;
-import org.opendatakit.submit.flags.Types;
 
-import android.R;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
