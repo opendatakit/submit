@@ -76,7 +76,7 @@ public class SubmitService extends Service {
 		mMonitor = new ChannelMonitor();
 		
 		// Set up Queue Thread
-        mRunnable = new sendToManager();
+        mRunnable = new SendToManager();
         mThread = new Thread(mRunnable);
         mThread.start();
 		
@@ -115,29 +115,15 @@ public class SubmitService extends Service {
 			
 			Log.i(TAG, "In submit()");
 			SubmitObject submit = new SubmitObject(app_uid, data, send);
-			ArrayList<String> submitids = new ArrayList<String>();
-			
-			/* Map application to submission ID */
-			// Check if application already has 
-			// submissions on the queue
-			if(mSubmitMap.containsKey(app_uid)) {
-				// If it does, add the SubmitID to the list of SubmitID's
-				Log.i(TAG, "app_id already exists");
-				submitids = mSubmitMap.get(app_uid);
-			}
-			submitids.add(submit.getSubmitID());
-			mSubmitMap.put(app_uid, submitids);
-			
+
 			/* Map submission ID to DataObject */
 			// Here, we assume that the SubmitID
 			// is unique, so we do not check before
 			// putting it into the map
 			TupleElement<DataObject,SendObject> metadata = new TupleElement<DataObject,SendObject>(submit.getData(),send);
-			mDataObjectMap.put(submit.getSubmitID(), metadata);
 			
-			/* Put submission on queue */
-			mSubmitQueue.add(submit);
-			
+			addSubmitObjToSubmitMap(app_uid, submit, metadata);
+						
 			manageQueue();
 			return submit.getSubmitID();
 		}
@@ -146,32 +132,39 @@ public class SubmitService extends Service {
 		public String register(String app_uid, DataObject data)
 				throws RemoteException {
 			Log.i(TAG, "In register()");
-			
-			SubmitObject submit = new SubmitObject(app_uid, data, null);
-			ArrayList<String> submitids = new ArrayList<String>();
-			
-			/* Map application to submission ID */
-			// Check if application already has 
-			// submissions on the queue
-			if(mSubmitMap.containsKey(app_uid)) {
-				// If it does, add the SubmitID to the list of SubmitID's
-				submitids = mSubmitMap.get(app_uid);
-			}
-			submitids.add(submit.getSubmitID());
-			mSubmitMap.put(app_uid, submitids);
+					
+			SubmitObject submit = new SubmitObject(app_uid, data, null);		
 			
 			/* Map submission ID to DataObject */
 			// Here, we assume that the SubmitID
 			// is unique, so we do not check before
 			// putting it into the map
 			TupleElement<DataObject,SendObject> metadata = new TupleElement<DataObject,SendObject>(submit.getData(),null);
+
+			addSubmitObjToSubmitMap(app_uid, submit, metadata);
+			
+			manageQueue();
+			return submit.getSubmitID();
+		}
+
+		private void addSubmitObjToSubmitMap(String app_uid, SubmitObject submit, TupleElement<DataObject,SendObject> metadata) {
+			ArrayList<String> submitids;
+			/* Map application to submission ID */
+			// Check if application already has 
+			// submissions on the queue
+			if(mSubmitMap.containsKey(app_uid)) {
+				// If it does, add the SubmitID to the list of SubmitID's
+				submitids = mSubmitMap.get(app_uid);
+			} else {
+				submitids = new ArrayList<String>();
+			}
+			submitids.add(submit.getSubmitID());
+			mSubmitMap.put(app_uid, submitids);
+			
 			mDataObjectMap.put(submit.getSubmitID(), metadata);
 			
 			/* Put submission on queue */
 			mSubmitQueue.add(submit);
-			
-			manageQueue();
-			return submit.getSubmitID();
 		}
 		
 		@Override
@@ -242,6 +235,13 @@ public class SubmitService extends Service {
 			// Remove from mDataObjectMap
 			mDataObjectMap.remove(submit_uid);
 		}
+
+		@Override
+		public String registerApplication(String app_uid)
+				throws RemoteException {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	};
 		
 	
@@ -287,7 +287,7 @@ public class SubmitService extends Service {
 	 * based on the TYPE of the object on the top of the queue
 	 * it passes off to the MessageManager or the SyncManager
 	 */
-	private class sendToManager implements Runnable {
+	private class SendToManager implements Runnable {
 
 		@Override
 		public void run() {

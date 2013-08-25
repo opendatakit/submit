@@ -43,9 +43,4 @@ public enum CommunicationState implements Parcelable {
             return new CommunicationState[size];
         }
     };
-    
-    public void readFromParcel(Parcel in) {
-		// TODO Auto-generated method stub
-		
-	}
 }

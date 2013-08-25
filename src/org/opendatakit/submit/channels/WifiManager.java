@@ -1,6 +1,5 @@
 package org.opendatakit.submit.channels;
 
-import org.opendatakit.submit.flags.DataSize;
 
 /**
  * Manages Wifi Channel

@@ -1,7 +1,5 @@
 package org.opendatakit.submit.channels;
 
-import org.opendatakit.submit.flags.DataSize;
-import org.opendatakit.submit.flags.Radio;
 
 public class ChannelManager {
 	private long mCostPerMbps;
