@@ -35,9 +35,9 @@ import android.util.Log;
 public class SubmitService extends Service {
 
 	private static final String TAG = "SubmitService";
-	private static LinkedList<SubmitObject> mSubmitQueue = null; // Record keeping
-	private static HashMap<String, ArrayList<String>> mSubmitMap = null; // Record keeping
-	private static HashMap<String, TupleElement<DataObject,SendObject>> mDataObjectMap = null;
+	private static LinkedList<SubmitObject> mSubmitQueue = null; // Keeps track of all SubmitObjects and keeps them in a FIFO queue
+	private static HashMap<String, ArrayList<String>> mSubmitMap = null; // Keeps track of all SubmitObjects that belong to a given app. Maps list of SubmitIDs to an AppID.
+	private static HashMap<String, TupleElement<DataObject,SendObject>> mDataObjectMap = null; // Keeps track of DataObjects and SendObjects that belong to a SubmitObject. Maps tuple <DataObject,SendObject> to SubmitID for quick lookup.
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
 	private SubmitAPI mSubApi = null;
@@ -318,47 +318,17 @@ public class SubmitService extends Service {
 					// another round, or pop it and throw an exception
 					switch(result) {
 						case CHANNEL_UNAVAILABLE:
-							// set the SubmitObject state
-							top.setState(result);
-							// broadcast result to client app
-							broadcastStateToApp(top);
-							break;
 						case SEND:
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							break;
 						case WAITING_ON_APP_RESPONSE:
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							// This assumes that we should treat App-owned
-							// SubmitObjects the same as Submit-owned
-							// where we just pop off the top 
-							// If App encounters an issue while communicating
-							// they can figure out why and resubmit a
-							// submission request using submit() or register()
-							// broadcast result to client app
-							broadcastStateToApp(top);
-							// Delete
-							mBinder.delete(top.getSubmitID());
-							break;
 						case SUCCESS:
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							// Delete
-							mBinder.delete(top.getSubmitID());
-							// broadcast result to client app
-							broadcastStateToApp(top);
-							Log.i(TAG, "Thread has finished run()");
-							break;
 						case FAILURE:
+						case ERROR:
+							// For now, we are not removing anything from the
+							// record keeping data structures.
 							Log.i(TAG, "Result was " + result.toString());
 							top.setState(result);
-							// Delete
-							mBinder.delete(top.getSubmitID());
-							// broadcast result to client app
 							broadcastStateToApp(top);
 							break;
-						
 						default:
 							/*
 							 * TODO Consider adding a mechanism here, where if 
