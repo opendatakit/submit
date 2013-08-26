@@ -3,10 +3,14 @@ package org.opendatakit.submit.route;
 import java.util.ArrayList;
 
 import org.opendatakit.submit.address.DestinationAddress;
+import org.opendatakit.submit.address.HttpAddress;
+import org.opendatakit.submit.address.HttpsAddress;
+import org.opendatakit.submit.address.SmsAddress;
 import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.CommunicationException;
+import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.DataSize;
@@ -15,6 +19,7 @@ import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Routes SubmitObjects based on data properties
@@ -44,33 +49,88 @@ public class CommunicationManager implements CommunicationInterface {
 	@Override
 	public Object executeTask(SubmitObject submitobj, Radio radio)
 			throws CommunicationException {
-		SendObject send = submitobj.getAddress();
 		API api = whichAPI(submitobj);
-		// If the channel is appropriate for the data
-		if (dataFitsChannel(radio, submitobj.getData())) {
-			// If the application intends to handle the
-			// sending itself
-			if (send == null) {
+		// Look at the SubmitObject's current state
+		switch(submitobj.getState()) {
+			case CHANNEL_UNAVAILABLE:
+				if(dataFitsChannel(radio, submitobj.getData())) {
+					// If the channel is ready to send the data
+					// recursively call executeTask() on the SubmitObject
+					// with the CommunicationState set to SEND
+					submitobj.setState(CommunicationState.SEND);
+					return executeTask(submitobj, radio);
+				}
+			case SUCCESS:
+			case FAILURE:
+				return submitobj.getState();
+			case SEND:
+				// Check to see if the SubmitObject is registered 
+				// to send over a Submit API module or by the
+				// application that submitted it
+				if(submitobj.getAddress() == null) {
+					// return WAITING_ON_APP_RESPONSE
+					return CommunicationState.WAITING_ON_APP_RESPONSE;
+				} else {
+					switch(api) {
+					case STUB:
+					case SMS:
+					case GCM:
+						try {
+							// Get address for API
+							getAddress(api, submitobj.getAddress().getAddresses());
+						} catch (InvalidAddressException e) {
+							Log.e(CommunicationManager.class.getName(), e.getMessage());
+						}
+						// TODO: once implemented, this could be SUCCESS, FAILURE, or IN_PROGRESS
+						return CommunicationState.SUCCESS;
+					default:
+						return CommunicationState.FAILURE;
+					}
+				}
+			case IN_PROGRESS:
+				return CommunicationState.IN_PROGRESS;
+			case WAITING_ON_APP_RESPONSE:
 				return CommunicationState.WAITING_ON_APP_RESPONSE;
-			}
-			switch(api) {
-			case STUB:
-				return CommunicationState.SUCCESS;
-			case SMS:
-			case GCM:
+			case TIMEOUT:
+				return CommunicationState.FAILURE;
+			case ERROR:
 			default:
-				// TODO other calls to real APIs would go here.
-				return CommunicationState.CHANNEL_UNAVAILABLE;
-			}
-		} // The channel is innapropriate for the data
-		return CommunicationState.CHANNEL_UNAVAILABLE;
+				return CommunicationState.ERROR;
+		}
 	}
 
-	private String getAddress(API api, ArrayList<DestinationAddress> addresses) {
-		// TODO Auto-generated method stub
+	private String getAddress(API api, ArrayList<DestinationAddress> addresses) throws InvalidAddressException {
+		String addr = getAddressTypeForAPI(api, addresses);
+		if (addr != null) {
+			// TODO return a call to an SMS sending function
+			return null;
+		} else {
+			throw new InvalidAddressException("There are no DestinationAddress formats suitable for the available APIs");
+		}
+	}
+
+	private String getAddressTypeForAPI(API api, ArrayList<DestinationAddress> addresses) {
+		for(DestinationAddress da : addresses) {
+			switch(api) {
+			case SMS:
+				if (da.getClass() == SmsAddress.class) {
+					return da.getAddress();
+				}
+			case GCM:
+				if (da.getClass() == SmsAddress.class || da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
+					return da.getAddress();
+				}
+			case ODKv2:
+				if(da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
+					return da.getAddress();
+				}
+			default:
+				break;
+			}
+		}
 		return null;
 	}
-
+	
 	/**
 	 * This is the function that makes most of the "routing"
 	 * decisions for the CommunicationManager.
