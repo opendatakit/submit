@@ -51,7 +51,7 @@ public class CommunicationManager implements CommunicationInterface {
 			// If the application intends to handle the
 			// sending itself
 			if (send == null) {
-				return CommunicationState.PASS_TO_APP;
+				return CommunicationState.WAITING_ON_APP_RESPONSE;
 			}
 			switch(api) {
 			case STUB:
@@ -60,10 +60,10 @@ public class CommunicationManager implements CommunicationInterface {
 			case GCM:
 			default:
 				// TODO other calls to real APIs would go here.
-				return CommunicationState.UNAVAILABLE;
+				return CommunicationState.CHANNEL_UNAVAILABLE;
 			}
 		} // The channel is innapropriate for the data
-		return CommunicationState.UNAVAILABLE;
+		return CommunicationState.CHANNEL_UNAVAILABLE;
 	}
 
 	private String getAddress(API api, ArrayList<DestinationAddress> addresses) {

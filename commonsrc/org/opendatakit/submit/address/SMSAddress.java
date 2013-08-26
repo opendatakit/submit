@@ -7,9 +7,14 @@ import android.os.Parcelable;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
-public class SMSAddress extends DestinationAddress {
+public class SmsAddress extends DestinationAddress {
 
-	public SMSAddress(String dest) throws InvalidAddressException {
+	/**
+	 * SmsAddress constructor from String
+	 * @param dest
+	 * @throws InvalidAddressException
+	 */
+	public SmsAddress(String dest) throws InvalidAddressException {
 		// Verify phone number
 		super();
 		/*
@@ -24,7 +29,12 @@ public class SMSAddress extends DestinationAddress {
 		}
 	}
 	
-	public SMSAddress(Parcel in) throws InvalidAddressException {
+	/**
+	 * SmsAddress constructor from Parcel
+	 * @param in
+	 * @throws InvalidAddressException
+	 */
+	public SmsAddress(Parcel in) throws InvalidAddressException {
 		// Verify phone number
 		super();
 		String dest = in.readString();
@@ -57,20 +67,20 @@ public class SMSAddress extends DestinationAddress {
 		dest.writeString(getAddress());
 	}
 	
-	public static final Parcelable.Creator<SMSAddress> CREATOR =
-		    new Parcelable.Creator<SMSAddress>() {
-		        public SMSAddress createFromParcel(Parcel in) {
+	public static final Parcelable.Creator<SmsAddress> CREATOR =
+		    new Parcelable.Creator<SmsAddress>() {
+		        public SmsAddress createFromParcel(Parcel in) {
 		            try {
-						return new SMSAddress(in);
+						return new SmsAddress(in);
 					} catch (InvalidAddressException e) {
-						Log.e(SMSAddress.class.getName(), e.getMessage());
+						Log.e(SmsAddress.class.getName(), e.getMessage());
 						e.printStackTrace();
 					}
 		            return null;
 		        }
 
-		        public SMSAddress[] newArray(int size) {
-		            return new SMSAddress[size];
+		        public SmsAddress[] newArray(int size) {
+		            return new SmsAddress[size];
 		        }
 	};
 	
@@ -78,7 +88,7 @@ public class SMSAddress extends DestinationAddress {
 		try {
 			this.setAddress(in.readString());
 		} catch (InvalidAddressException e) {
-			Log.e(SMSAddress.class.getName(), e.getMessage());
+			Log.e(SmsAddress.class.getName(), e.getMessage());
 			e.printStackTrace();
 		}
 	}

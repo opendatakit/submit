@@ -269,12 +269,13 @@ public class SubmitService extends Service {
 	 * Application listening with a BroadcastReceiver
 	 * using the UID as an ID mechanism.
 	 */
-	private void broadcastStateToApp(CommunicationState state, String uid) {
+	private void broadcastStateToApp(CommunicationState state, SubmitObject submit) {
 		Intent intent = new Intent();
-		intent.setAction(uid);
+		intent.setAction(submit.getAppID());
+		intent.putExtra("SUBMIT_OBJECT_ID", submit.getSubmitID());
 		intent.putExtra("RESULT", (Parcelable)state);
 		sendBroadcast(intent);
-		Log.i(TAG,"Sent broadcast to " + uid);
+		Log.i(TAG,"Sent broadcast to " + submit);
 	}
 
 	/*
@@ -316,7 +317,7 @@ public class SubmitService extends Service {
 					// pop the top object off mSubmitQueue, keep it in for 
 					// another round, or pop it and throw an exception
 					switch(result) {
-						case PASS_TO_APP:
+						case WAITING_ON_APP_RESPONSE:
 							Log.i(TAG, "Result was PASS_TO_APP");
 							// This assumes that we should treat App-owned
 							// SubmitObjects the same as Submit-owned
@@ -325,7 +326,7 @@ public class SubmitService extends Service {
 							// they can figure out why and resubmit a
 							// submission request using submit() or register()
 							// broadcast result to client app
-							broadcastStateToApp(result, top.getSubmitID());
+							broadcastStateToApp(result, top);
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							break;
@@ -334,7 +335,7 @@ public class SubmitService extends Service {
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
-							broadcastStateToApp(result, top.getSubmitID());
+							broadcastStateToApp(result, top);
 							Log.i(TAG, "Thread has finished run()");
 							break;
 						case FAILURE:
@@ -342,12 +343,12 @@ public class SubmitService extends Service {
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
-							broadcastStateToApp(result, top.getSubmitID());
+							broadcastStateToApp(result, top);
 							break;
-						case IN_PROGRESS:
-						case UNAVAILABLE:
+						case SEND:
+						case CHANNEL_UNAVAILABLE:
 							// broadcast result to client app
-							broadcastStateToApp(result, top.getSubmitID());
+							broadcastStateToApp(result, top);
 							break;
 						default:
 							/*

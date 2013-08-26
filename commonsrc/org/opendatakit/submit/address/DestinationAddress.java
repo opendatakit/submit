@@ -12,21 +12,36 @@ public class DestinationAddress implements Parcelable {
 	private String mAddress;
 	private static final String TAG = "DestinationAddress";
 	
-	// constructor
+	/**
+	 * DestinationAddress constructor
+	 */
 	public DestinationAddress() {
 		// Empty constructor
 	}
 	
+	/**
+	 * DestinationAddress constructor from Parcel
+	 * @param in
+	 */
 	public DestinationAddress(Parcel in) {
 		readFromParcel(in);
 	}
 	
 	// Getters
+	/**
+	 * Get the URI or telephone number
+	 * @return mAddress
+	 */
 	public String getAddress() {
 		return mAddress;
 	}
 	
 	// Setters
+	/**
+	 * Set the URI or telephone number to dest
+	 * @param dest
+	 * @throws InvalidAddressException
+	 */
 	public void setAddress(String dest) throws InvalidAddressException {
 		mAddress = dest;
 	}
