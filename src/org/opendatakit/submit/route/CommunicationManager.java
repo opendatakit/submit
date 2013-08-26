@@ -86,7 +86,6 @@ public class CommunicationManager implements CommunicationInterface {
 		// Here we do not consider order as it is dealt with
 		// before being pushed to the CommunicationManager
 		DataSize size = data.getDataSize();
-		DataSize response = data.getResponseSize();
 		boolean reliable = data.isReliable();
 		boolean resp_required = data.isResponseRequired();
 		if (radio != null) {
@@ -101,9 +100,6 @@ public class CommunicationManager implements CommunicationInterface {
 				// TODO this is where factoring
 				// in price will be critical as well
 				if (size == DataSize.LARGE) {
-					return false;
-				}
-				if (response == DataSize.LARGE) {
 					return false;
 				}
 			case WIFI:

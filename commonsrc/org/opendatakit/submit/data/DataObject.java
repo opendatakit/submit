@@ -15,7 +15,6 @@ public class DataObject implements Parcelable {
 	private boolean mFragmentable = true;
 	private boolean mResponseRequired = true;
 	private boolean mOrdered = false;
-	private DataSize mResponseSize = DataSize.NORMAL;
 	
 	public DataObject(String path, DataSize size, boolean reliable, boolean fragmentable, boolean ordered, boolean response, DataSize responsesize) {
 		setDataSize(size);
@@ -23,7 +22,6 @@ public class DataObject implements Parcelable {
 		setFragmentability(fragmentable);
 		setOrdered(ordered);
 		setResponseRequired(response);
-		setResponseSize(responsesize);
 	}
 	public DataObject() {
 		// All presets are set
@@ -54,10 +52,6 @@ public class DataObject implements Parcelable {
 		return mResponseRequired;
 	}
 	
-	public DataSize getResponseSize() {
-		return mResponseSize;
-	}
-	
 	public String getDataPath() {
 		return mPath;
 	}
@@ -83,10 +77,6 @@ public class DataObject implements Parcelable {
 		mResponseRequired = response;
 	}
 	
-	public void setResponseSize(DataSize size) {
-		mResponseSize = size;
-	}
-	
 	public void setDataPath(String path) {
 		mPath = path;
 	}
@@ -103,11 +93,9 @@ public class DataObject implements Parcelable {
 		booleanFields[1] = mFragmentable;
 		booleanFields[2] = mOrdered;
 		booleanFields[3] = mResponseRequired;
-		
 		dest.writeString(mPath);
 		dest.writeString(mDataSize.toString());
 		dest.writeBooleanArray(booleanFields);
-		dest.writeString(mResponseSize.toString());
 		
 	}
 	
@@ -126,7 +114,6 @@ public class DataObject implements Parcelable {
 		setOrdered(booleanFields[2]);
 		setResponseRequired(booleanFields[3]);
 		
-		setResponseSize(DataSize.valueOf(in.readString()));
 	}
 	
 	public static final Parcelable.Creator<DataObject> CREATOR =
