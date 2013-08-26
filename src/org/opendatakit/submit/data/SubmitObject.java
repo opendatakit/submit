@@ -2,6 +2,8 @@ package org.opendatakit.submit.data;
 
 import java.util.Date;
 
+import org.opendatakit.submit.flags.CommunicationState;
+
 /**
  * Data object in submit
  * that contains the DataObject
@@ -14,6 +16,7 @@ public class SubmitObject {
 	private String mSubmitID = null;
 	private DataObject mData = null;
 	private SendObject mAddress = null;
+	private CommunicationState mState = null;
 	
 	public SubmitObject(String appID, DataObject data, SendObject addr) {
 		// For the SubmitID
@@ -22,6 +25,7 @@ public class SubmitObject {
 		mData = data;
 		mAddress = addr;
 		mSubmitID = Integer.toString(System.identityHashCode(data)) + Long.toString(date.getTime());
+		mState = CommunicationState.CHANNEL_UNAVAILABLE;
 	}
 	
 	// Getters
@@ -39,6 +43,15 @@ public class SubmitObject {
 	
 	public String getAppID() {
 		return mAppID;
+	}
+	
+	public CommunicationState getState() {
+		return mState;
+	}
+
+	// Setters
+	public void setState(CommunicationState state) {
+		mState = state;
 	}
 	
 }

@@ -269,11 +269,11 @@ public class SubmitService extends Service {
 	 * Application listening with a BroadcastReceiver
 	 * using the UID as an ID mechanism.
 	 */
-	private void broadcastStateToApp(CommunicationState state, SubmitObject submit) {
+	private void broadcastStateToApp(SubmitObject submit) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
 		intent.putExtra("SUBMIT_OBJECT_ID", submit.getSubmitID());
-		intent.putExtra("RESULT", (Parcelable)state);
+		intent.putExtra("RESULT", submit.getState().toString());
 		sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit);
 	}
@@ -317,8 +317,19 @@ public class SubmitService extends Service {
 					// pop the top object off mSubmitQueue, keep it in for 
 					// another round, or pop it and throw an exception
 					switch(result) {
+						case CHANNEL_UNAVAILABLE:
+							// set the SubmitObject state
+							top.setState(result);
+							// broadcast result to client app
+							broadcastStateToApp(top);
+							break;
+						case SEND:
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
+							break;
 						case WAITING_ON_APP_RESPONSE:
-							Log.i(TAG, "Result was PASS_TO_APP");
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
 							// This assumes that we should treat App-owned
 							// SubmitObjects the same as Submit-owned
 							// where we just pop off the top 
@@ -326,30 +337,28 @@ public class SubmitService extends Service {
 							// they can figure out why and resubmit a
 							// submission request using submit() or register()
 							// broadcast result to client app
-							broadcastStateToApp(result, top);
+							broadcastStateToApp(top);
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							break;
 						case SUCCESS:
-							Log.i(TAG, "Result was SUCCESS");
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
-							broadcastStateToApp(result, top);
+							broadcastStateToApp(top);
 							Log.i(TAG, "Thread has finished run()");
 							break;
 						case FAILURE:
-							Log.i(TAG, "Result was FAILURE");
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
 							// Delete
 							mBinder.delete(top.getSubmitID());
 							// broadcast result to client app
-							broadcastStateToApp(result, top);
+							broadcastStateToApp(top);
 							break;
-						case SEND:
-						case CHANNEL_UNAVAILABLE:
-							// broadcast result to client app
-							broadcastStateToApp(result, top);
-							break;
+						
 						default:
 							/*
 							 * TODO Consider adding a mechanism here, where if 
