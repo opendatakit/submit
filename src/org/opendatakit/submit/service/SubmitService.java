@@ -68,7 +68,7 @@ public class SubmitService extends Service {
 		mDataObjectMap = new HashMap<String, TupleElement<DataObject,SendObject>>();
 		
 		// Set up private vars
-		mCommManager = new CommunicationManager(getApplicationContext());
+		mCommManager = new CommunicationManager(this);
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
         
@@ -245,6 +245,22 @@ public class SubmitService extends Service {
 		}
 	};
 		
+	/**
+	 * A callback function
+	 * to update the queue when 
+	 * an update has been made to 
+	 * a SubmitObject.
+	 * @param submit
+	 */
+	public void resultState(SubmitObject submit) {
+		// Update SubmitQueue
+		for(SubmitObject sub : mSubmitQueue) {
+			if (sub.getSubmitID().equals(submit.getSubmitID())) {
+				mSubmitQueue.remove(sub);
+				mSubmitQueue.add(submit);
+			}
+		}
+	}
 	
 	/*
 	 * private methods
@@ -263,18 +279,17 @@ public class SubmitService extends Service {
 			Log.e(TAG, e.getMessage());
 		}
 	}
-	
 
 	/* 
 	 * Broadcasts CommunicationState to the 
 	 * Application listening with a BroadcastReceiver
 	 * using the UID as an ID mechanism.
 	 */
-	private void broadcastStateToApp(SubmitObject submit) {
+	private void broadcastStateToApp(SubmitObject submit, CommunicationState state) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
 		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_RESULT.name(), submit.getSubmitID());
-		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID.toString(), submit.getState().toString());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID.toString(), state.toString());
 		sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit);
 	}
@@ -311,7 +326,7 @@ public class SubmitService extends Service {
 					// Check if there is an ordered element before
 					// passing it off to the CommunicationManager
 					
-					result = (CommunicationState)mCommManager.executeTask(top, mActiveRadio);
+					result = (CommunicationState)mCommManager.route(top, mActiveRadio);
 					
 					
 					// Depending on the resulting CommunicationState
@@ -319,24 +334,38 @@ public class SubmitService extends Service {
 					// another round, or pop it and throw an exception
 					switch(result) {
 						case CHANNEL_UNAVAILABLE:
-						case SEND:
-						case WAITING_ON_APP_RESPONSE:
-						case SUCCESS:
-						case FAILURE:
-						case ERROR:
 							// For now, we are not removing anything from the
 							// record keeping data structures.
 							Log.i(TAG, "Result was " + result.toString());
 							top.setState(result);
-							broadcastStateToApp(top);
+							broadcastStateToApp(top, result);
+							break;
+						case SEND:
+							// For now, we are not removing anything from the
+							// record keeping data structures.
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
+							broadcastStateToApp(top, result);
+							break;
+						case WAITING_ON_APP_RESPONSE:
+							// For now, we are not removing anything from the
+							// record keeping data structures.
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
+							broadcastStateToApp(top, CommunicationState.SEND);
+							break;
+						case SUCCESS:
+						case FAILURE_RETRY:
+						case FAILURE_NO_RETRY:
+							// For now, we are not removing anything from the
+							// record keeping data structures.
+							Log.i(TAG, "Result was " + result.toString());
+							top.setState(result);
+							broadcastStateToApp(top, result);
 							break;
 						default:
-							/*
-							 * TODO Consider adding a mechanism here, where if 
-							 * a QueuedObject has just been sitting on the queue
-							 * for more than X rounds through the Queue, we dump
-							 * it as a particular failure case. 
-							 */
+							top.setState(CommunicationState.FAILURE_NO_RETRY);
+							broadcastStateToApp(top, CommunicationState.FAILURE_NO_RETRY);
 							break;
 					}
 				} catch (Exception e) {

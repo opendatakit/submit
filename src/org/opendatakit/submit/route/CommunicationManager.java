@@ -16,6 +16,7 @@ import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.DataSize;
 import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.interfaces.CommunicationInterface;
+import org.opendatakit.submit.service.SubmitService;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.content.Context;
@@ -27,15 +28,30 @@ import android.util.Log;
  * @author mvigil
  *
  */
-public class CommunicationManager implements CommunicationInterface {
-	SubmitObject mSubmitObject = null;
-	Radio mRadio = null;
+public class CommunicationManager {
+	private SubmitObject mSubmitObject = null;
+	private Radio mRadio = null;
+	private SendManager mSender = null;
+	private SubmitService mSubmitService = null;
 	
 	// TODO for testing purposes
 	SubmitAPI mSubmitAPI = new SubmitAPI();
 	
-	public CommunicationManager(Context context) {
-		
+	/**
+	 * Constructor from Context
+	 * @param context
+	 */
+	public CommunicationManager(SubmitService subserv) {
+		mSender = new SendManager(this);
+	}
+	
+	/**
+	 * Callback that directs back to SubmitService
+	 * and updates SubmitObject with the newest state
+	 * @param submit
+	 */
+	public void resultState(SubmitObject submit) {
+		mSubmitService.resultState(submit);
 	}
 	
 	/**
@@ -46,9 +62,7 @@ public class CommunicationManager implements CommunicationInterface {
 	 * @param queuedobj
 	 * @param radio
 	 */
-	@Override
-	public Object executeTask(SubmitObject submitobj, Radio radio)
-			throws CommunicationException {
+	public Object route(SubmitObject submitobj, Radio radio) {
 		API api = whichAPI(submitobj);
 		// Look at the SubmitObject's current state
 		switch(submitobj.getState()) {
@@ -58,10 +72,10 @@ public class CommunicationManager implements CommunicationInterface {
 					// recursively call executeTask() on the SubmitObject
 					// with the CommunicationState set to SEND
 					submitobj.setState(CommunicationState.SEND);
-					return executeTask(submitobj, radio);
+					return route(submitobj, radio); // Bypass SubmitService
 				}
 			case SUCCESS:
-			case FAILURE:
+			case FAILURE_RETRY:
 				return submitobj.getState();
 			case SEND:
 				// Check to see if the SubmitObject is registered 
@@ -71,6 +85,10 @@ public class CommunicationManager implements CommunicationInterface {
 					// return WAITING_ON_APP_RESPONSE
 					return CommunicationState.WAITING_ON_APP_RESPONSE;
 				} else {
+					// Submit "owns" the data and is responsible for sending it.
+					mSender.updateState(submitobj, mRadio, CommunicationState.SEND);
+					return CommunicationState.IN_PROGRESS;
+					/*
 					switch(api) {
 					case STUB:
 					case SMS:
@@ -84,18 +102,18 @@ public class CommunicationManager implements CommunicationInterface {
 						// TODO: once implemented, this could be SUCCESS, FAILURE, or IN_PROGRESS
 						return CommunicationState.SUCCESS;
 					default:
-						return CommunicationState.FAILURE;
-					}
+						return CommunicationState.FAILURE_NO_RETRY;
+					}*/
 				}
 			case IN_PROGRESS:
 				return CommunicationState.IN_PROGRESS;
 			case WAITING_ON_APP_RESPONSE:
 				return CommunicationState.WAITING_ON_APP_RESPONSE;
 			case TIMEOUT:
-				return CommunicationState.FAILURE;
-			case ERROR:
+				return CommunicationState.FAILURE_RETRY;
+			case FAILURE_NO_RETRY:
 			default:
-				return CommunicationState.ERROR;
+				return CommunicationState.FAILURE_NO_RETRY;
 		}
 	}
 

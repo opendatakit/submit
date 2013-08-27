@@ -15,8 +15,8 @@ import android.os.Parcelable;
  */
 public enum CommunicationState implements Parcelable {
 	SUCCESS,
-	FAILURE,
-	ERROR,
+	FAILURE_RETRY,
+	FAILURE_NO_RETRY,
 	SEND,
 	CHANNEL_UNAVAILABLE,
 	IN_PROGRESS,
