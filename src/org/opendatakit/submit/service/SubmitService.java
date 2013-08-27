@@ -9,6 +9,7 @@ import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
+import org.opendatakit.submit.flags.BroadcastExtraKeys;
 import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
@@ -272,8 +273,8 @@ public class SubmitService extends Service {
 	private void broadcastStateToApp(SubmitObject submit) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
-		intent.putExtra("SUBMIT_OBJECT_ID", submit.getSubmitID());
-		intent.putExtra("RESULT", submit.getState().toString());
+		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_RESULT.name(), submit.getSubmitID());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID.toString(), submit.getState().toString());
 		sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit);
 	}
