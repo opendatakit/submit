@@ -6,7 +6,7 @@ package org.opendatakit.submit.flags;
  * @author mvigil
  *
  */
-public enum BroadcastExtraKeys {
-COMMUNICATION_RESULT,
-SUBMIT_OBJECT_ID;
+public class BroadcastExtraKeys {
+	public final static String COMMUNICATION_STATE = "send_state";
+	public final static String SUBMIT_OBJECT_ID = "send_uid";
 }

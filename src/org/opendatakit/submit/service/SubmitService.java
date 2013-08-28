@@ -273,8 +273,8 @@ public class SubmitService extends Service {
 	private void broadcastStateToApp(SubmitObject submit) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
-		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_RESULT.name(), submit.getSubmitID());
-		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID.toString(), submit.getState().toString());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, submit.getSubmitID());
+		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, (Parcelable) submit.getState());
 		sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit);
 	}
