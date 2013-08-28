@@ -98,7 +98,19 @@ public class MainActivity extends Activity {
 			Log.e(TAG, e.getMessage());
 		} // TODO!!!
 		mReceiverList = new ArrayList<BroadcastReceiver>();
+		myBroadcastReceiver = new BroadcastReceiver() {
 
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Log.d(TAG, "onReceive triggered by SubmitService");
+				Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
+			}
+			
+		};
+		mFilter = new IntentFilter();
+		mFilter.addAction(Integer.toString(mUID));
+		mFilter.addCategory(Intent.CATEGORY_DEFAULT);
+		
 		// Bind to the service
 		Log.i(TAG, "Binding to service");
 		Intent intent = new Intent(
@@ -153,23 +165,12 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				BroadcastReceiver SubmitBroadcastReceiver = new BroadcastReceiver() {
-
-					@Override
-					public void onReceive(Context context, Intent intent) {
-						Log.d(TAG, "onReceive triggered by SubmitService");
-						Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
-					}
-					
-				};
-				IntentFilter SubmitFilter = new IntentFilter();
+				
 				try {
 					Log.i(TAG, "onClick() for submit()");
 					String objid = "";
 					objid = mService.submit(Integer.toString(mUID), mData, mSend);
-					SubmitFilter.addAction(objid);
-					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
-					mReceiverList.add(SubmitBroadcastReceiver);
+					
 					
 				} catch (RemoteException e) {
 					String err = (e.getMessage() == null)?"RemoteException":e.getMessage();
@@ -186,24 +187,11 @@ public class MainActivity extends Activity {
 		btn_Register.setOnClickListener(new View.OnClickListener() {
 
 			@Override
-			public void onClick(View v) {
-				BroadcastReceiver SubmitBroadcastReceiver = new BroadcastReceiver() {
-
-					@Override
-					public void onReceive(Context context, Intent intent) {
-						Log.d(TAG, "onReceive triggered by SubmitService");
-						Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
-					}
-					
-				};
-				IntentFilter SubmitFilter = new IntentFilter();
+			public void onClick(View v) {			
 				String objid = null;
 				try {
 					Log.i(TAG, "onClick() for register()");
 					objid = mService.register(Integer.toString(mUID), mData);
-					SubmitFilter.addAction(objid);
-					SubmitFilter.addCategory(Intent.CATEGORY_DEFAULT);
-					mReceiverList.add(SubmitBroadcastReceiver);
 				} catch (RemoteException e) {
 					Log.e(TAG, e.getMessage());
 				} catch (Exception e) {
