@@ -7,20 +7,14 @@ import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.address.HttpsAddress;
 import org.opendatakit.submit.address.SmsAddress;
 import org.opendatakit.submit.data.DataObject;
-import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
-import org.opendatakit.submit.exceptions.CommunicationException;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.DataSize;
 import org.opendatakit.submit.flags.Radio;
-import org.opendatakit.submit.interfaces.CommunicationInterface;
 import org.opendatakit.submit.service.SubmitService;
 import org.opendatakit.submit.stubapi.SubmitAPI;
-
-import android.content.Context;
-import android.util.Log;
 
 /**
  * Routes SubmitObjects based on data properties

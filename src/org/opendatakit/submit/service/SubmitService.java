@@ -3,13 +3,15 @@ package org.opendatakit.submit.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
+import org.opendatakit.submit.flags.BroadcastExtraKeys;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
-import org.opendatakit.submit.flags.BroadcastExtraKeys;
 import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
@@ -23,7 +25,6 @@ import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.os.RemoteException;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -51,14 +52,22 @@ public class SubmitService extends Service {
 	private Resources mResources = null;
 	private CommunicationManager mCommManager = null;
 	
+	// TODO: REMOVE TOTAL HACK ... mBinder should be a class would solve these issues
+	private static List<AppReceiver> mAppReceivers;
+	private static Context mContext;
+	private static SubmitService mySelf;
+	
 	/*
 	 * Service methods
 	 */
 	
 	@Override
 	public void onCreate() {
-		
+		super.onCreate();
 		Log.i(TAG, "onCreate() starting SubmitService");
+		
+		mContext = this;
+		mySelf = this;
 		
 		/* Record keeping data structures */
 		// Queues all Submissions and Registrations until the time is ripe for sending
@@ -66,6 +75,8 @@ public class SubmitService extends Service {
 		// Maps to look up and facilitate queue management
 		mSubmitMap = new HashMap<String, ArrayList<String>>();
 		mDataObjectMap = new HashMap<String, TupleElement<DataObject,SendObject>>();
+		mAppReceivers = new LinkedList<AppReceiver>();
+		
 		
 		// Set up private vars
 		mCommManager = new CommunicationManager(this);
@@ -99,7 +110,13 @@ public class SubmitService extends Service {
     public void onDestroy() {
 		Log.i(TAG, "Destroying SubmitService instance");
 		this.getApplicationContext().unregisterReceiver(mMonitor);
-
+		
+		// unregister the receivers
+		for(AppReceiver receiver : mAppReceivers) {
+			receiver.destroy();
+		}
+		
+		super.onDestroy();
     }
 	
 	@Override
@@ -240,8 +257,13 @@ public class SubmitService extends Service {
 		@Override
 		public String registerApplication(String app_uid)
 				throws RemoteException {
-			// TODO Auto-generated method stub
-			return null;
+			
+			UUID uid = UUID.randomUUID();
+			
+			String appUid = uid.toString();
+			AppReceiver listener = new AppReceiver(appUid, mySelf, mContext);
+			mAppReceivers.add(listener);
+			return appUid;
 		}
 	};
 		
@@ -260,6 +282,18 @@ public class SubmitService extends Service {
 				mSubmitQueue.add(submit);
 			}
 		}
+	}
+	
+	public void updateState(String submitObjUid, CommunicationState state) {
+		// TODO: fix so we don't brute force
+		for(SubmitObject sub : mSubmitQueue) {
+			if (sub.getSubmitID().equals(submitObjUid)) {
+				// TODO: do we want logic to check that we will accept this state
+				sub.setState(state);
+				return;
+			}
+		}
+		System.err.println("ERROR - Unable to find submit object ... moving on");
 	}
 	
 	/*
