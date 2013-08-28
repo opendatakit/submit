@@ -9,7 +9,11 @@ import android.webkit.URLUtil;
 
 public class HttpAddress extends DestinationAddress implements Parcelable {
 
-	// Constructor
+	/**
+	 * HttpAddress constructor
+	 * @param dest
+	 * @throws InvalidAddressException
+	 */
 	public HttpAddress(String dest) throws InvalidAddressException {
 		super();
 		if(URLUtil.isValidUrl(dest)) {
@@ -19,6 +23,11 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		}
 	}
 	
+	/**
+	 * HttpAddress constructor from Parcel
+	 * @param in
+	 * @throws InvalidAddressException
+	 */
 	public HttpAddress(Parcel in) throws InvalidAddressException {
 		super();
 		readFromParcel(in);
@@ -33,13 +42,16 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		}
 	}
 	
+	@Override
 	public int describeContents() {
 		return 0;
 	}
 	
+	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(getAddress());
 	}
+	
 	
 	public static final Parcelable.Creator<HttpAddress> CREATOR =
 		    new Parcelable.Creator<HttpAddress>() {

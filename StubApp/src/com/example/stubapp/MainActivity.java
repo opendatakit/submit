@@ -9,6 +9,8 @@ import org.opendatakit.submit.data.DataObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
+import org.opendatakit.submit.flags.BroadcastExtraKeys;
+import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.service.ClientRemote;
 
 import android.os.Bundle;
@@ -102,7 +104,10 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				Log.d(TAG, "onReceive triggered by SubmitService");
+				Bundle bundle = intent.getExtras();
+				CommunicationState state = (CommunicationState)bundle.get(BroadcastExtraKeys.COMMUNICATION_STATE);
+				String submitID = (String)bundle.get(BroadcastExtraKeys.SUBMIT_OBJECT_ID);
+				Log.d(TAG, "onReceive triggered by SubmitService: SubmitID="+submitID+" state="+state.toString());
 				Toast.makeText(getApplicationContext(), "Submit API triggered", Toast.LENGTH_SHORT).show();
 			}
 			
@@ -110,6 +115,7 @@ public class MainActivity extends Activity {
 		mFilter = new IntentFilter();
 		mFilter.addAction(Integer.toString(mUID));
 		mFilter.addCategory(Intent.CATEGORY_DEFAULT);
+		this.registerReceiver(myBroadcastReceiver, mFilter);
 		
 		// Bind to the service
 		Log.i(TAG, "Binding to service");

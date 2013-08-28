@@ -322,10 +322,10 @@ public class SubmitService extends Service {
 	private void broadcastStateToApp(SubmitObject submit, CommunicationState state) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
-		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, submit.getSubmitID());
-		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, state.toString());
+		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, state.toString());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, submit.getSubmitID());
 		sendBroadcast(intent);
-		Log.i(TAG,"Sent broadcast to " + submit);
+		Log.i(TAG,"Sent broadcast to " + submit.getAppID());
 	}
 
 	/*
@@ -385,7 +385,7 @@ public class SubmitService extends Service {
 							// For now, we are not removing anything from the
 							// record keeping data structures.
 							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
+							//top.setState(result);
 							broadcastStateToApp(top, CommunicationState.SEND);
 							break;
 						case SUCCESS:

@@ -2,7 +2,6 @@ package org.opendatakit.submit.flags;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.Parcelable.Creator;
 
 /**
  * State of the communication based on the
@@ -16,10 +15,13 @@ import android.os.Parcelable.Creator;
  */
 public enum CommunicationState implements Parcelable {
 	SUCCESS,
-	FAILURE,
+	FAILURE_RETRY,
+	FAILURE_NO_RETRY,
+	SEND,
+	CHANNEL_UNAVAILABLE,
 	IN_PROGRESS,
-	UNAVAILABLE,
-	PASS_TO_APP;
+	WAITING_ON_APP_RESPONSE,
+	TIMEOUT;
 	
 	@Override
 	public int describeContents() {
@@ -44,9 +46,4 @@ public enum CommunicationState implements Parcelable {
             return new CommunicationState[size];
         }
     };
-    
-    public void readFromParcel(Parcel in) {
-		// TODO Auto-generated method stub
-		
-	}
 }

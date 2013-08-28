@@ -7,7 +7,8 @@ import org.opendatakit.submit.flags.MessageType;
 import org.opendatakit.submit.flags.SyncType;
 
 interface ClientRemote {
-
+	
+	String registerApplication( String app_uid);
 	String register( String app_uid, inout DataObject data );
 	String submit( String app_uid, inout DataObject data, inout SendObject send );
 	void delete( String submit_uid );
