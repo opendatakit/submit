@@ -69,7 +69,6 @@ public class SubmitService extends Service {
 		
 		// Set up private vars
 		mCommManager = new CommunicationManager(this);
-		mCommManager = new CommunicationManager(getApplicationContext());
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
         
@@ -289,8 +288,8 @@ public class SubmitService extends Service {
 	private void broadcastStateToApp(SubmitObject submit, CommunicationState state) {
 		Intent intent = new Intent();
 		intent.setAction(submit.getAppID());
-		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_RESULT.name(), submit.getSubmitID());
-		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID.toString(), state.toString());
+		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, submit.getSubmitID());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, state.toString());
 		sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit);
 	}
