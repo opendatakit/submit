@@ -12,6 +12,7 @@ import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.flags.BroadcastExtraKeys;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
+import org.opendatakit.submit.receivers.ChannelMonitor;
 import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
@@ -85,10 +86,10 @@ public class SubmitService extends Service {
         
         // Set up BroadcastReceiver
         mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-		mMonitor = new ChannelMonitor();
+		mMonitor = new ChannelMonitor(this);
 		
 		// Set up Queue Thread
-        mRunnable = new SendToManager();
+        mRunnable = new SendToCommunicationManager(this);
         mThread = new Thread(mRunnable);
         mThread.start();
 		
@@ -266,6 +267,20 @@ public class SubmitService extends Service {
 			return appUid;
 		}
 	};
+	
+	/* 
+	 * Broadcasts CommunicationState to the 
+	 * Application listening with a BroadcastReceiver
+	 * using the UID as an ID mechanism.
+	 */
+	public void broadcastStateToApp(SubmitObject submit, CommunicationState state) {
+		Intent intent = new Intent();
+		intent.setAction(submit.getAppID());
+		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, state.toString());
+		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, submit.getSubmitID());
+		sendBroadcast(intent);
+		Log.i(TAG,"Sent broadcast to " + submit.getAppID());
+	}
 		
 	/**
 	 * A callback function
@@ -295,6 +310,23 @@ public class SubmitService extends Service {
 		}
 		System.err.println("ERROR - Unable to find submit object ... moving on");
 	}
+	/* Setters */
+	public void setActiveRadio(Radio radio) {
+		mActiveRadio = radio;
+	}
+	
+	/* Getters */
+	public LinkedList<SubmitObject> getSubmitQueue() {
+		return mSubmitQueue;
+	}
+	
+	public Radio getActiveRadio() {
+		return mActiveRadio;
+	}
+	
+	public CommunicationManager getCommunicationManager() {
+		return mCommManager;
+	}
 	
 	/*
 	 * private methods
@@ -313,222 +345,4 @@ public class SubmitService extends Service {
 			Log.e(TAG, e.getMessage());
 		}
 	}
-
-	/* 
-	 * Broadcasts CommunicationState to the 
-	 * Application listening with a BroadcastReceiver
-	 * using the UID as an ID mechanism.
-	 */
-	private void broadcastStateToApp(SubmitObject submit, CommunicationState state) {
-		Intent intent = new Intent();
-		intent.setAction(submit.getAppID());
-		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, state.toString());
-		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, submit.getSubmitID());
-		sendBroadcast(intent);
-		Log.i(TAG,"Sent broadcast to " + submit.getAppID());
-	}
-
-	/*
-	 * Runnables
-	 */
-	
-	/**
-	 * sendToManager Runnable
-	 * Gets passed to the routeInBackgroundThread;
-	 * based on the TYPE of the object on the top of the queue
-	 * it passes off to the MessageManager or the SyncManager
-	 */
-	private class SendToManager implements Runnable {
-
-		@Override
-		public void run() {
-			Log.i(TAG, "Starting to run sendToManagerThread");
-			// While there are submission requests in the Queue, service the queue
-			// with appropriate calls to executeTask() from the MessageManager or SyncManager
-			while(!Thread.currentThread().isInterrupted()) { // TODO this is a bit brute force-ish, but it will do for the moment
-				try {
-					if (mSubmitQueue.size() < 1) {
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {
-							Log.e(TAG, e.getMessage());
-						}
-						continue;
-					}
-					CommunicationState result = null;
-					SubmitObject top = mSubmitQueue.getFirst();
-					// Check if there is an ordered element before
-					// passing it off to the CommunicationManager
-					
-					result = (CommunicationState)mCommManager.route(top, mActiveRadio);
-					
-					
-					// Depending on the resulting CommunicationState
-					// pop the top object off mSubmitQueue, keep it in for 
-					// another round, or pop it and throw an exception
-					switch(result) {
-						case CHANNEL_UNAVAILABLE:
-							// For now, we are not removing anything from the
-							// record keeping data structures.
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							broadcastStateToApp(top, result);
-							break;
-						case SEND:
-							// For now, we are not removing anything from the
-							// record keeping data structures.
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							broadcastStateToApp(top, result);
-							break;
-						case WAITING_ON_APP_RESPONSE:
-							// For now, we are not removing anything from the
-							// record keeping data structures.
-							Log.i(TAG, "Result was " + result.toString());
-							//top.setState(result);
-							broadcastStateToApp(top, CommunicationState.SEND);
-							break;
-						case SUCCESS:
-						case FAILURE_RETRY:
-						case FAILURE_NO_RETRY:
-							// For now, we are not removing anything from the
-							// record keeping data structures.
-							Log.i(TAG, "Result was " + result.toString());
-							top.setState(result);
-							broadcastStateToApp(top, result);
-							break;
-						default:
-							top.setState(CommunicationState.FAILURE_NO_RETRY);
-							broadcastStateToApp(top, CommunicationState.FAILURE_NO_RETRY);
-							break;
-					}
-				} catch (Exception e) {
-					String err = (e.getMessage() == null)?"Exception":e.getMessage();
-					e.printStackTrace();
-					return;
-				} 
-				// Add downtime
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					Log.e(TAG, e.getMessage());
-					break;
-				} // TODO temporary time
-				continue;
-			}
-			Log.i(TAG, "Thread has finished run()");
-		}
-		
-	};
-	
-
-	
-	/**
-	 * ChannelMonitor listens to see when Radio
-	 * interfaces are activated.
-	 * 
-	 * This class extends the BroadcastReceiver interface
-	 * and updates the current Radio that is active.
-	 * 
-	 * @author mvigil
-	 *
-	 */
-	public class ChannelMonitor extends BroadcastReceiver {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			try{
-				Log.i(TAG, "onReceive in ChannelMonitor");
-
-				ConnectivityManager connMgr = (ConnectivityManager) context
-						.getSystemService(Context.CONNECTIVITY_SERVICE);
-				NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-				if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-					// WiFi
-					Log.i(TAG, "WiFi enabled!");
-					mActiveRadio = Radio.WIFI;
-					// TODO determine if you want to try WiFi-Direct at any
-					// point here
-
-				}
-				if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
-
-					if (isConnectionFast(networkInfo.getType(),
-							networkInfo.getSubtype())) {
-						// "High speed" cellular connection
-						Log.i(TAG, "CELL enabled!");
-						mActiveRadio = Radio.HIGH_BAND_CELL;
-					} else {
-						// Low speed cellular connection
-						Log.i(TAG, "GSM enabled!");
-						mActiveRadio = Radio.LOW_BAND_CELL;
-					}
-
-				}
-			} catch (Exception e) {
-				String err = (e.getMessage() == null)?"Exception":e.getMessage();
-				Log.e(TAG, err);
-				e.printStackTrace();
-			}
-			
-		}
-
-		/**
-		 * Check if the connection is fast From Emil @ stackoverflow
-		 * 
-		 * @param type
-		 * @param subType
-		 * @return
-		 */
-		public boolean isConnectionFast(int type, int subType) {
-			if (type == ConnectivityManager.TYPE_WIFI) {
-				return true;
-			} else if (type == ConnectivityManager.TYPE_MOBILE) {
-				switch (subType) {
-				case TelephonyManager.NETWORK_TYPE_1xRTT:
-					return false; // ~ 50-100 kbps
-				case TelephonyManager.NETWORK_TYPE_CDMA:
-					return false; // ~ 14-64 kbps
-				case TelephonyManager.NETWORK_TYPE_EDGE:
-					return false; // ~ 50-100 kbps
-				case TelephonyManager.NETWORK_TYPE_EVDO_0:
-					return true; // ~ 400-1000 kbps
-				case TelephonyManager.NETWORK_TYPE_EVDO_A:
-					return true; // ~ 600-1400 kbps
-				case TelephonyManager.NETWORK_TYPE_GPRS:
-					return false; // ~ 100 kbps
-				case TelephonyManager.NETWORK_TYPE_HSDPA:
-					return true; // ~ 2-14 Mbps
-				case TelephonyManager.NETWORK_TYPE_HSPA:
-					return true; // ~ 700-1700 kbps
-				case TelephonyManager.NETWORK_TYPE_HSUPA:
-					return true; // ~ 1-23 Mbps
-				case TelephonyManager.NETWORK_TYPE_UMTS:
-					return true; // ~ 400-7000 kbps
-					/*
-					 * Above API level 7, make sure to set android:targetSdkVersion
-					 * to appropriate level to use these
-					 */
-				case TelephonyManager.NETWORK_TYPE_EHRPD: // API level 11
-					return true; // ~ 1-2 Mbps
-				case TelephonyManager.NETWORK_TYPE_EVDO_B: // API level 9
-					return true; // ~ 5 Mbps
-				case TelephonyManager.NETWORK_TYPE_HSPAP: // API level 13
-					return true; // ~ 10-20 Mbps
-				case TelephonyManager.NETWORK_TYPE_IDEN: // API level 8
-					return false; // ~25 kbps
-				case TelephonyManager.NETWORK_TYPE_LTE: // API level 11
-					return true; // ~ 10+ Mbps
-					// Unknown
-				case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-				default:
-					return false;
-				}
-			} else {
-				return false;
-			}
-		}
-	}
-
 }
