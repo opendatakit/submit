@@ -66,7 +66,7 @@ public class CommunicationManager {
 					// recursively call executeTask() on the SubmitObject
 					// with the CommunicationState set to SEND
 					submitobj.setState(CommunicationState.SEND);
-					return route(submitobj, radio); // Bypass SubmitService
+					return CommunicationState.SEND;//route(submitobj, radio); // Bypass SubmitService
 				}
 			case SUCCESS:
 			case FAILURE_RETRY:
@@ -77,31 +77,19 @@ public class CommunicationManager {
 				// application that submitted it
 				if(submitobj.getAddress() == null) {
 					// return WAITING_ON_APP_RESPONSE
+					submitobj.setState(CommunicationState.WAITING_ON_APP_RESPONSE);
 					return CommunicationState.WAITING_ON_APP_RESPONSE;
 				} else {
 					// Submit "owns" the data and is responsible for sending it.
+					submitobj.setState(CommunicationState.IN_PROGRESS);
 					mSender.updateState(submitobj, mRadio, CommunicationState.SEND);
 					return CommunicationState.IN_PROGRESS;
-					/*
-					switch(api) {
-					case STUB:
-					case SMS:
-					case GCM:
-						try {
-							// Get address for API
-							getAddress(api, submitobj.getAddress().getAddresses());
-						} catch (InvalidAddressException e) {
-							Log.e(CommunicationManager.class.getName(), e.getMessage());
-						}
-						// TODO: once implemented, this could be SUCCESS, FAILURE, or IN_PROGRESS
-						return CommunicationState.SUCCESS;
-					default:
-						return CommunicationState.FAILURE_NO_RETRY;
-					}*/
 				}
 			case IN_PROGRESS:
+				// TODO set timer
 				return CommunicationState.IN_PROGRESS;
 			case WAITING_ON_APP_RESPONSE:
+				// TODO set timer
 				return CommunicationState.WAITING_ON_APP_RESPONSE;
 			case TIMEOUT:
 				return CommunicationState.FAILURE_RETRY;

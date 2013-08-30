@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.TelephonyManager;
@@ -38,9 +39,7 @@ import android.util.Log;
 public class SubmitService extends Service {
 
 	private static final String TAG = "SubmitService";
-	private static LinkedList<SubmitObject> mSubmitQueue = null; // Keeps track of all SubmitObjects and keeps them in a FIFO queue
-	private static HashMap<String, ArrayList<String>> mSubmitMap = null; // Keeps track of all SubmitObjects that belong to a given app. Maps list of SubmitIDs to an AppID.
-	private static HashMap<String, TupleElement<DataObject,SendObject>> mDataObjectMap = null; // Keeps track of DataObjects and SendObjects that belong to a SubmitObject. Maps tuple <DataObject,SendObject> to SubmitID for quick lookup.
+	private SubmitQueue mSubmitQueue = null;
 	public static Radio mActiveRadio = null;
 	public static Radio mActiveP2PRadio = null;
 	private SubmitAPI mSubApi = null;
@@ -52,11 +51,11 @@ public class SubmitService extends Service {
 	private SharedPreferences mPrefs = null;
 	private Resources mResources = null;
 	private CommunicationManager mCommManager = null;
+	private IBinder mBinder = null;
+	private Context mContext = null;
 	
 	// TODO: REMOVE TOTAL HACK ... mBinder should be a class would solve these issues
 	private static List<AppReceiver> mAppReceivers;
-	private static Context mContext;
-	private static SubmitService mySelf;
 	
 	/*
 	 * Service methods
@@ -67,15 +66,11 @@ public class SubmitService extends Service {
 		super.onCreate();
 		Log.i(TAG, "onCreate() starting SubmitService");
 		
-		mContext = this;
-		mySelf = this;
+
 		
 		/* Record keeping data structures */
 		// Queues all Submissions and Registrations until the time is ripe for sending
-		mSubmitQueue = new LinkedList<SubmitObject>(); 
-		// Maps to look up and facilitate queue management
-		mSubmitMap = new HashMap<String, ArrayList<String>>();
-		mDataObjectMap = new HashMap<String, TupleElement<DataObject,SendObject>>();
+		mSubmitQueue = new SubmitQueue();
 		mAppReceivers = new LinkedList<AppReceiver>();
 		
 		
@@ -83,6 +78,7 @@ public class SubmitService extends Service {
 		mCommManager = new CommunicationManager(this);
 		mFilter = new IntentFilter();
 		mSubApi = new SubmitAPI();
+		mContext = this;
         
         // Set up BroadcastReceiver
         mFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
@@ -123,151 +119,12 @@ public class SubmitService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		Log.i(TAG, "Binding to SubmitService");
-		return mBinder;
+		// Set up IBinder
+		mBinder = new SubmitServiceInterface(this, mContext);
+		return (IBinder)mBinder;
 	}
 	
-	private final ClientRemote.Stub mBinder = new ClientRemote.Stub() {
-		
-		@Override
-		public String submit(String app_uid, DataObject data, SendObject send)
-				throws RemoteException {
-			
-			Log.i(TAG, "In submit()");
-			SubmitObject submit = new SubmitObject(app_uid, data, send);
-
-			/* Map submission ID to DataObject */
-			// Here, we assume that the SubmitID
-			// is unique, so we do not check before
-			// putting it into the map
-			TupleElement<DataObject,SendObject> metadata = new TupleElement<DataObject,SendObject>(submit.getData(),send);
-			
-			addSubmitObjToSubmitMap(app_uid, submit, metadata);
-						
-			manageQueue();
-			return submit.getSubmitID();
-		}
-		
-		@Override
-		public String register(String app_uid, DataObject data)
-				throws RemoteException {
-			Log.i(TAG, "In register()");
-					
-			SubmitObject submit = new SubmitObject(app_uid, data, null);		
-			
-			/* Map submission ID to DataObject */
-			// Here, we assume that the SubmitID
-			// is unique, so we do not check before
-			// putting it into the map
-			TupleElement<DataObject,SendObject> metadata = new TupleElement<DataObject,SendObject>(submit.getData(),null);
-
-			addSubmitObjToSubmitMap(app_uid, submit, metadata);
-			
-			manageQueue();
-			return submit.getSubmitID();
-		}
-
-		private void addSubmitObjToSubmitMap(String app_uid, SubmitObject submit, TupleElement<DataObject,SendObject> metadata) {
-			ArrayList<String> submitids;
-			/* Map application to submission ID */
-			// Check if application already has 
-			// submissions on the queue
-			if(mSubmitMap.containsKey(app_uid)) {
-				// If it does, add the SubmitID to the list of SubmitID's
-				submitids = mSubmitMap.get(app_uid);
-			} else {
-				submitids = new ArrayList<String>();
-			}
-			submitids.add(submit.getSubmitID());
-			mSubmitMap.put(app_uid, submitids);
-			
-			mDataObjectMap.put(submit.getSubmitID(), metadata);
-			
-			/* Put submission on queue */
-			mSubmitQueue.add(submit);
-		}
-		
-		@Override
-		public int queueSize() throws RemoteException {
-			Log.i(TAG, "In queueSize()");
-			return mSubmitQueue.size();
-		}
-		
-		@Override
-		public boolean onQueue(String submit_uid) throws RemoteException {
-			Log.i(TAG, "In onQueue()");
-			return mDataObjectMap.containsKey(submit_uid);		
-		}
-		
-		@Override
-		public SendObject getSendObjectById(String submit_uid) throws RemoteException {
-			return (SendObject)mDataObjectMap.get(submit_uid).get(1);
-		}
-		
-		@Override
-		public String[] getQueuedSubmissions(String app_uid) throws RemoteException {
-			String[] ids = null;
-			ArrayList<String> idlist = mSubmitMap.get(app_uid);
-			
-			// If there are no SubmitObjects belonging to
-			// the AppID, then return null values
-			if(idlist.size() < 1) {
-				return null;
-			}
-			
-			// Transfer listed SubmitIDs to 
-			// String[] ids. We do the transfer
-			// for the purpose of serialization
-			ids = new String[idlist.size()];
-			int position = 0;
-			for(String id : idlist) {
-				ids[position] = id;
-				position++;
-			}
-			return ids;
-		}
-		
-		@Override
-		public DataObject getDataObjectById(String submit_uid) throws RemoteException {
-			return (DataObject)mDataObjectMap.get(submit_uid).get(0);
-		}
-		
-		@Override
-		public void delete(String submit_uid )
-				throws RemoteException {
-			Log.i(TAG, "In delete()");
-			// Remove from mSubmitQueue and mSubmitMap
-			for(SubmitObject submit : mSubmitQueue ) {
-				if(submit.getSubmitID().equals(submit_uid)) {
-					
-					// Remove from mSubmitMap
-					String appid = submit.getAppID();
-					ArrayList<String> submitids = mSubmitMap.get(appid);
-					submitids.remove(submit_uid);
-					mSubmitMap.put(appid, submitids);
-					
-					// Remove from mSumitQueue
-					mSubmitQueue.remove(submit);
-					
-					break;
-				}
-			} 
-			// Remove from mDataObjectMap
-			mDataObjectMap.remove(submit_uid);
-		}
-
-		@Override
-		public String registerApplication(String app_uid)
-				throws RemoteException {
-			
-			UUID uid = UUID.randomUUID();
-			
-			String appUid = uid.toString();
-			AppReceiver listener = new AppReceiver(appUid, mySelf, mContext);
-			mAppReceivers.add(listener);
-			return appUid;
-		}
-	};
-	
+	//private final ClientRemote.Stub mBinder = new ClientRemote.Stub()	
 	/* 
 	 * Broadcasts CommunicationState to the 
 	 * Application listening with a BroadcastReceiver
@@ -290,33 +147,58 @@ public class SubmitService extends Service {
 	 * @param submit
 	 */
 	public void resultState(SubmitObject submit) {
-		// Update SubmitQueue
-		for(SubmitObject sub : mSubmitQueue) {
-			if (sub.getSubmitID().equals(submit.getSubmitID())) {
-				mSubmitQueue.remove(sub);
-				mSubmitQueue.add(submit);
-			}
+		if (submit != null) {
+			mSubmitQueue.updateSubmitQueue(submit);
 		}
 	}
 	
 	public void updateState(String submitObjUid, CommunicationState state) {
-		// TODO: fix so we don't brute force
-		for(SubmitObject sub : mSubmitQueue) {
-			if (sub.getSubmitID().equals(submitObjUid)) {
-				// TODO: do we want logic to check that we will accept this state
-				sub.setState(state);
-				return;
-			}
-		}
-		System.err.println("ERROR - Unable to find submit object ... moving on");
+		SubmitObject submit = mSubmitQueue.getSubmitObjectBySubmitId(submitObjUid);
+		submit.setState(state);
+		mSubmitQueue.updateSubmitQueue(submit);
 	}
+	
 	/* Setters */
 	public void setActiveRadio(Radio radio) {
 		mActiveRadio = radio;
 	}
 	
+	public void addAppReceiver(AppReceiver apprecv) {
+		mAppReceivers.add(apprecv);
+	}
+	
+	public void addSubmitObject(SubmitObject submit) {
+		if (submit != null) {
+			mSubmitQueue.addSubmitObjectToQueue(submit);
+		}
+	}
+	
+	public void removeSubmitObjectFromQueue(SubmitObject submit) {
+		mSubmitQueue.removeSubmitObjectFromQueue(submit);
+	}
+	
+	public void removeSubmitObjectFromQueue(String app_id, String submit_id) {
+		mSubmitQueue.removeSubmitObjectFromQueue(app_id, submit_id);
+	}
+	
+	public void addLastToSubmitQueue(SubmitObject submit) {
+		mSubmitQueue.addSubmitObjectLast(submit);
+	}
+	
+	public SubmitObject popFromSubmitQueue() {
+		return mSubmitQueue.popTopSubmitObject();
+	}
+	
 	/* Getters */
-	public LinkedList<SubmitObject> getSubmitQueue() {
+	public boolean onSubmitQueue(String submit_id) {
+		return mSubmitQueue.onSubmitQueue(submit_id);
+	}
+	
+	public int getSubmitQueueSize() {
+		return mSubmitQueue.getSubmitQueueSize();
+	}
+	
+	public SubmitQueue getSubmitQueue() {
 		return mSubmitQueue;
 	}
 	
@@ -328,12 +210,16 @@ public class SubmitService extends Service {
 		return mCommManager;
 	}
 	
-	/*
-	 * private methods
-	 */
+	public SubmitObject getSubmitObjectFromSubmitQueue(String submit_id) {
+		return mSubmitQueue.getSubmitObjectBySubmitId(submit_id);
+	}
+	
+	public ArrayList<String> getSubmitIdsFromAppId(String app_id) {
+		return mSubmitQueue.getSubmitIdsByAppId(app_id);
+	}
 	
 	/* Call this to start managing the queue */
-	protected void manageQueue() {
+	public void manageQueue() {
 		Log.i(TAG, "manageQueue()");
 		try{
 			if(!mThread.isAlive()) {

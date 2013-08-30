@@ -20,7 +20,7 @@ public class SendToCommunicationManager implements Runnable {
 
 	private final String TAG = SendToCommunicationManager.class.getName();
 	private SubmitService mService = null;
-	private LinkedList<SubmitObject> mSubmitQueue = null;
+	private SubmitQueue mSubmitQueue = null;
 	private CommunicationManager mManager = null;
 	private Radio mActiveRadio = null;
 	
@@ -32,15 +32,16 @@ public class SendToCommunicationManager implements Runnable {
 	@Override
 	public void run() {
 		Log.i(TAG, "Starting to run sendToManagerThread");
-		mSubmitQueue = mService.getSubmitQueue();
-		mActiveRadio = mService.getActiveRadio();
-		mManager = mService.getCommunicationManager();
+		
 		
 		// While there are submission requests in the Queue, service the queue
 		// with appropriate calls to executeTask() from the MessageManager or SyncManager
 		while(!Thread.currentThread().isInterrupted()) { // TODO this is a bit brute force-ish, but it will do for the moment
+			mSubmitQueue = mService.getSubmitQueue();
+			mActiveRadio = mService.getActiveRadio();
+			mManager = mService.getCommunicationManager();
 			try {
-				if (mSubmitQueue.size() < 1) {
+				if (mService.getSubmitQueueSize() < 1) {
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
@@ -49,7 +50,7 @@ public class SendToCommunicationManager implements Runnable {
 					continue;
 				}
 				CommunicationState result = null;
-				SubmitObject top = mSubmitQueue.getFirst();
+				SubmitObject top = mService.popFromSubmitQueue();
 				// Check if there is an ordered element before
 				// passing it off to the CommunicationManager
 				
@@ -64,31 +65,49 @@ public class SendToCommunicationManager implements Runnable {
 						// For now, we are not removing anything from the
 						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
-						top.setState(result);
-						mService.broadcastStateToApp(top, result);
+						mService.addLastToSubmitQueue(top);
 						break;
 					case SEND:
 						// For now, we are not removing anything from the
 						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
-						top.setState(result);
 						mService.broadcastStateToApp(top, result);
+						mService.addLastToSubmitQueue(top);
 						break;
 					case WAITING_ON_APP_RESPONSE:
 						// For now, we are not removing anything from the
 						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
-						//top.setState(result);
 						mService.broadcastStateToApp(top, result);
+						mService.addLastToSubmitQueue(top);
 						break;
 					case SUCCESS:
+						// For now, we are not removing anything from the
+						// record keeping data structures.
+						Log.i(TAG, "Result was " + result.toString());
+						top.setState(result);
+						if(top.getAddress() != null) {
+							mService.broadcastStateToApp(top, result);
+						}
+						break;
 					case FAILURE_RETRY:
+						// For now, we are not removing anything from the
+						// record keeping data structures.
+						Log.i(TAG, "Result was " + result.toString());
+						top.setState(result);
+						if(top.getAddress() != null) {
+							mService.broadcastStateToApp(top, result);
+						}
+						mService.addLastToSubmitQueue(top);
+						break;
 					case FAILURE_NO_RETRY:
 						// For now, we are not removing anything from the
 						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						top.setState(result);
-						mService.broadcastStateToApp(top, result);
+						if(top.getAddress() != null) {
+							mService.broadcastStateToApp(top, result);
+						}
 						break;
 					default:
 						top.setState(CommunicationState.FAILURE_NO_RETRY);
