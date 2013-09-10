@@ -14,11 +14,13 @@ import android.os.Parcelable;
  * 
  */
 public enum API implements Parcelable {
-	SMS, // SMS for messages only
-	GCM, // GCM for messages only
+	SMS, // TODO SMS for messages only
+	GCM, // TODO GCM for messages only
 	ODKv2, // ODKv2 for stored data
 	STUB,
-	APP; // for testing
+	APP, 
+	HTTP,
+	HTTPS; // for testing
 
 	@Override
 	public int describeContents() {

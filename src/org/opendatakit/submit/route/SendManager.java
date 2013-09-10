@@ -11,10 +11,13 @@ import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
+import org.opendatakit.submit.libs.http.HttpClient;
 
 import android.util.Log;
 
 public class SendManager {
+	
+	private final String TAG = SendManager.class.getName();
 	private CommunicationManager mManager = null;
 	private ArrayList<Thread> mThreadList = null;
 	
@@ -45,6 +48,28 @@ public class SendManager {
 	
 	/* Private functions */
 	
+	/**
+	 * Given an HTTP code, return a corresponding CommunicationState
+	 * @return
+	 */
+	private CommunicationState httpCodeToCommunicationState(int code) {
+		if (200 <= code && code < 300) {
+			Log.i(TAG, "HTTP Response Code: Successful "+ Integer.toString(code));
+			return CommunicationState.SUCCESS;
+		} else if (300 <= code && code < 400) {
+			Log.i(TAG, "HTTP Response Code: Redirection "+ Integer.toString(code));
+			return CommunicationState.FAILURE_RETRY;
+		} else if (400 <= code && code < 500) {
+			Log.i(TAG, "HTTP Response Code: Client Error "+ Integer.toString(code));
+			return CommunicationState.FAILURE_RETRY;
+		} else if (500 <= code && code < 600) {
+			Log.i(TAG, "HTTP Response Code: Server Error "+ Integer.toString(code));
+			return CommunicationState.FAILURE_NO_RETRY;
+		}
+		Log.i(TAG, "!!!! No recognizable HTTP Response Code !!!! "+ Integer.toString(code));
+		return CommunicationState.FAILURE_NO_RETRY;
+	}
+	
 	private DestinationAddress getAddress(API api, ArrayList<DestinationAddress> addresses) throws InvalidAddressException {
 		DestinationAddress addr = getAddressTypeForAPI(api, addresses);
 		if (addr != null) {
@@ -66,7 +91,7 @@ public class SendManager {
 				if (da.getClass() == SmsAddress.class || da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
 					return da;
 				}
-			case ODKv2:
+			case HTTP:
 				if(da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
 					return da;
 				}
@@ -88,9 +113,31 @@ public class SendManager {
 	private API whichAPI(SubmitObject submit, Radio radio) {
 		// TODO: Add more here when modular APIs are established
 		// For now, return STUB API no matter what
+		if (radio == Radio.WIFI) {
+			// TODO as of now we only have an HTTP client
+			// as we expand, there should be more checks here
+			if(hasHttp(submit.getAddress().getAddresses())) {
+				return API.HTTP;
+			}
+		}
 		return API.STUB;
 	}
+
 	
+	/**
+	 * Does the list contain an HttpAddress or HttpsAddress
+	 * @param addresses
+	 * @return
+	 */
+	private boolean hasHttp(ArrayList<DestinationAddress> addresses) {
+		for (DestinationAddress address : addresses) {
+			if (address.getClass().getName().equals(HttpAddress.class.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private class SendByModule implements Runnable {
 		private SubmitObject mSubmit = null;
 		private Radio mRadio = null;
@@ -122,9 +169,17 @@ public class SendManager {
 			case GCM:
 				// TODO GCM module
 				mSubmit.setState(CommunicationState.SUCCESS);
-			case ODKv2:
-				// TODO ODKv2 module
-				mSubmit.setState(CommunicationState.SUCCESS);
+			case HTTP:
+				try {
+					/* Try sending with HttpClient */
+					HttpClient client = new HttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
+					int httpcode = client.uploadData();
+					mSubmit.setState(httpCodeToCommunicationState(httpcode));
+				} catch (InvalidAddressException e) {
+					Log.e(TAG, e.getMessage());
+					e.printStackTrace();
+				}
+				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 			default:
 				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 			}

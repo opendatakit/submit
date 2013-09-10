@@ -62,14 +62,10 @@ public class SendToCommunicationManager implements Runnable {
 				// another round, or pop it and throw an exception
 				switch(result) {
 					case CHANNEL_UNAVAILABLE:
-						// For now, we are not removing anything from the
-						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						mService.addLastToSubmitQueue(top);
 						break;
 					case SEND:
-						// For now, we are not removing anything from the
-						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						mService.broadcastStateToApp(top, result);
 						mService.addLastToSubmitQueue(top);
@@ -82,30 +78,33 @@ public class SendToCommunicationManager implements Runnable {
 						mService.addLastToSubmitQueue(top);
 						break;
 					case SUCCESS:
-						// For now, we are not removing anything from the
-						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						top.setState(result);
 						if(top.getAddress() != null) {
+							// Submit is responsible for sending this,
+							// so it needs to notify the application of
+							// the communication result
 							mService.broadcastStateToApp(top, result);
 						}
 						break;
 					case FAILURE_RETRY:
-						// For now, we are not removing anything from the
-						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						top.setState(result);
 						if(top.getAddress() != null) {
+							// Submit is responsible for sending this,
+							// so it needs to notify the application of
+							// the communication result
 							mService.broadcastStateToApp(top, result);
 						}
 						mService.addLastToSubmitQueue(top);
 						break;
 					case FAILURE_NO_RETRY:
-						// For now, we are not removing anything from the
-						// record keeping data structures.
 						Log.i(TAG, "Result was " + result.toString());
 						top.setState(result);
 						if(top.getAddress() != null) {
+							// Submit is responsible for sending this,
+							// so it needs to notify the application of
+							// the communication result
 							mService.broadcastStateToApp(top, result);
 						}
 						break;
