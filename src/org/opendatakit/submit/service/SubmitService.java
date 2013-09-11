@@ -1,13 +1,9 @@
 package org.opendatakit.submit.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
-import org.opendatakit.submit.data.DataObject;
-import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.flags.BroadcastExtraKeys;
 import org.opendatakit.submit.flags.CommunicationState;
@@ -17,18 +13,12 @@ import org.opendatakit.submit.route.CommunicationManager;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Binder;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**

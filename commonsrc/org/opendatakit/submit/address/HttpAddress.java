@@ -2,8 +2,6 @@ package org.opendatakit.submit.address;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
 
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.opendatakit.submit.data.DataObject;
-import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 
 public class SubmitQueue {

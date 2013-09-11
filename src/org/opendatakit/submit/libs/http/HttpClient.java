@@ -1,31 +1,16 @@
 package org.opendatakit.submit.libs.http;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpParams;
-import org.opendatakit.submit.address.DestinationAddress;
 import org.opendatakit.submit.address.HttpAddress;
-import org.opendatakit.submit.address.HttpsAddress;
 import org.opendatakit.submit.data.SubmitObject;
 
 import android.util.Log;
@@ -81,5 +66,60 @@ public class HttpClient {
 		// indicates an error/exception
 		return -1;
 	}
+	
+//	  protected String executeStmt(String method, String urlString, String statement,
+//		      List<NameValuePair> qparams, boolean isFTQuery, CallingContext cc) throws ServiceException,
+//		      IOException, ODKExternalServiceException, GeneralSecurityException {
+//
+//		    if (statement == null && (POST.equals(method) || PATCH.equals(method) || PUT.equals(method))) {
+//		      throw new ODKExternalServiceException("No body supplied for POST, PATCH or PUT request");
+//		    } else if (statement != null
+//		        && !(POST.equals(method) || PATCH.equals(method) || PUT.equals(method))) {
+//		      throw new ODKExternalServiceException("Body was supplied for GET or DELETE request");
+//		    }
+//
+//		    GenericUrl url = new GenericUrl(urlString);
+//		    if (qparams != null) {
+//		      for (NameValuePair param : qparams) {
+//		        url.set(param.getName(), param.getValue());
+//		      }
+//		    }
+//
+//		    HttpContent entity = null;
+//		    if (statement != null) {
+//		      if (isFTQuery) {
+//		        Map<String, String> formContent = new HashMap<String, String>();
+//		        formContent.put("sql", statement);
+//		        UrlEncodedContent urlEntity = new UrlEncodedContent(formContent);
+//		        entity = urlEntity;
+//		        HttpMediaType t = urlEntity.getMediaType();
+//		        if (t != null) {
+//		          t.setCharsetParameter(Charset.forName(HtmlConsts.UTF8_ENCODE));
+//		        } else {
+//		          t = new HttpMediaType("application", "x-www-form-urlencoded");
+//		          t.setCharsetParameter(Charset.forName(HtmlConsts.UTF8_ENCODE));
+//		          urlEntity.setMediaType(t);
+//		        }
+//		      } else {
+//		        // the alternative -- using ContentType.create(,) throws an exception???
+//		        // entity = new StringEntity(statement, "application/json", UTF_8);
+//		        entity = new ByteArrayContent("application/json",
+//		            statement.getBytes(HtmlConsts.UTF8_ENCODE));
+//		      }
+//		    }
+//
+//		    HttpRequest request = requestFactory.buildRequest(method, url, entity);
+//		    HttpResponse resp = request.execute();
+//		    String response = WebUtils.readGoogleResponse(resp);
+//
+//		    int statusCode = resp.getStatusCode();
+//		    if (statusCode == HttpServletResponse.SC_UNAUTHORIZED) {
+//		      throw new ODKExternalServiceCredentialsException(response.toString() + statement);
+//		    } else if (statusCode != HttpServletResponse.SC_OK) {
+//		      throw new ODKExternalServiceException(response.toString() + statement);
+//		    }
+//
+//		    return response;
+//		  }
 	
 }

@@ -1,8 +1,5 @@
 package org.opendatakit.submit.service;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;

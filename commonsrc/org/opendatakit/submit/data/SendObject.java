@@ -10,46 +10,46 @@ import android.os.Parcelable;
 
 public class SendObject implements Parcelable {
 	ArrayList<DestinationAddress> mAddresses = null;
-	ArrayList<API> mAPIs = null;
-	
+	ArrayList<String> mFileLocations = null;
+
 	// constructors
 	public SendObject() {
 		// Empty constructor
 		mAddresses = new ArrayList<DestinationAddress>();
-		mAPIs = new ArrayList<API>();
+		mFileLocations = new ArrayList<String>();
 	}
-	
+
 	public SendObject(Parcel in) {
 		this();
 		readFromParcel(in);
 	}
-	
+
 	// Getters
-	
+
 	public ArrayList<DestinationAddress> getAddresses() {
 		return mAddresses;
 	}
-	
-	public ArrayList<API> getAPIs() {
-		return mAPIs;
+
+	public ArrayList<String> getFilePointers() {
+		return mFileLocations;
 	}
-	
+
 	// Setters
-	
-	public void setAddresses(ArrayList<DestinationAddress> destaddrs) {
-		mAddresses = destaddrs;
+
+	public void addAddresses(ArrayList<DestinationAddress> destaddrs) {
+		mAddresses.addAll(destaddrs);
 	}
-	
-	public void setAPIs(ArrayList<API> apis) {
-		mAPIs = apis;
+
+	public void addFilePointers(ArrayList<String> filePointers) {
+		mFileLocations.addAll(filePointers);
 	}
-	
+
 	public void addAddress(DestinationAddress destaddr) {
 		mAddresses.add(destaddr);
 	}
-	
-	public void addAPI(API api) {
-		mAPIs.add(api);
+
+	public void addFilePointer(String filePointer) {
+		mFileLocations.add(filePointer);
 	}
 
 	@Override
@@ -59,43 +59,31 @@ public class SendObject implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		// Convert API enums to API strings
-		ArrayList<String> strapi = new ArrayList<String>();
-		for(API api : mAPIs) {
-			strapi.add(api.toString());
-		}
 		// Write ArrayList<DestinationAddress>
 		dest.writeTypedList(mAddresses);
-		// Write ArrayList<String> version of mAPIs
-		dest.writeStringList(strapi);
+		// Write ArrayList<String> of mFileLocations
+		dest.writeStringList(mFileLocations);
 	}
-	
+
 	public void readFromParcel(Parcel in) {
-		mAPIs = new ArrayList<API>();
 		mAddresses = new ArrayList<DestinationAddress>();
+		mFileLocations = new ArrayList<String>();
 		
-		ArrayList<String> strapi = new ArrayList<String>();
 		// Read ArrayList<DestinationAddress>
 		in.readTypedList(mAddresses, DestinationAddress.CREATOR);
-		// Read ArrayList<String> representation of APIs
-		in.readStringList(strapi);
-		
-		// Convert API strings to API enum
-		for(String api : strapi) {
-			mAPIs.add(API.valueOf(api));
-		}
-		
-	}
-	
-	public static final Parcelable.Creator<SendObject> CREATOR =
-		    new Parcelable.Creator<SendObject>() {
-		        public SendObject createFromParcel(Parcel in) {
-		            return new SendObject(in);
-		        }
+		// Read ArrayList<String> of mFileLocations
+		in.readStringList(mFileLocations);
 
-		        public SendObject[] newArray(int size) {
-		            return new SendObject[size];
-		        }
+	}
+
+	public static final Parcelable.Creator<SendObject> CREATOR = new Parcelable.Creator<SendObject>() {
+		public SendObject createFromParcel(Parcel in) {
+			return new SendObject(in);
+		}
+
+		public SendObject[] newArray(int size) {
+			return new SendObject[size];
+		}
 	};
-	
+
 }
