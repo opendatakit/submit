@@ -6,7 +6,7 @@ import org.opendatakit.submit.address.DestinationAddress;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.address.HttpsAddress;
 import org.opendatakit.submit.address.SmsAddress;
-import org.opendatakit.submit.data.DataObject;
+import org.opendatakit.submit.data.DataPropertiesObject;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
@@ -142,7 +142,7 @@ public class CommunicationManager {
 	 * @param data
 	 * @return
 	 */
-	private boolean dataFitsChannel(Radio radio, DataObject data) {
+	private boolean dataFitsChannel(Radio radio, DataPropertiesObject data) {
 		// Here we do not consider order as it is dealt with
 		// before being pushed to the CommunicationManager
 		DataSize size = data.getDataSize();

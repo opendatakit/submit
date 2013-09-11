@@ -11,7 +11,7 @@ import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.Radio;
-import org.opendatakit.submit.libs.http.HttpClient;
+import org.opendatakit.submit.libs.http.ApacheHttpClient;
 
 import android.util.Log;
 
@@ -91,7 +91,7 @@ public class SendManager {
 				if (da.getClass() == SmsAddress.class || da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
 					return da;
 				}
-			case HTTP:
+			case APACHE_HTTP:
 				if(da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
 					return da;
 				}
@@ -117,7 +117,7 @@ public class SendManager {
 			// TODO as of now we only have an HTTP client
 			// as we expand, there should be more checks here
 			if(hasHttp(submit.getAddress().getAddresses())) {
-				return API.HTTP;
+				return API.APACHE_HTTP;
 			}
 		}
 		return API.STUB;
@@ -169,10 +169,10 @@ public class SendManager {
 			case GCM:
 				// TODO GCM module
 				mSubmit.setState(CommunicationState.SUCCESS);
-			case HTTP:
+			case APACHE_HTTP:
 				try {
 					/* Try sending with HttpClient */
-					HttpClient client = new HttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
+					ApacheHttpClient client = new ApacheHttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
 					int httpcode = client.uploadData();
 					mSubmit.setState(httpCodeToCommunicationState(httpcode));
 				} catch (InvalidAddressException e) {

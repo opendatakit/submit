@@ -3,7 +3,7 @@ package org.opendatakit.submit.service;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.opendatakit.submit.data.DataObject;
+import org.opendatakit.submit.data.DataPropertiesObject;
 import org.opendatakit.submit.data.SendObject;
 import org.opendatakit.submit.data.SubmitObject;
 
@@ -31,7 +31,7 @@ public class SubmitServiceInterface extends ClientRemote.Stub{
 	}
 	
 	@Override
-	public String submit(String app_uid, DataObject data, SendObject send)
+	public String submit(String app_uid, DataPropertiesObject data, SendObject send)
 			throws RemoteException {
 		
 		Log.i(TAG, "In submit()");
@@ -43,7 +43,7 @@ public class SubmitServiceInterface extends ClientRemote.Stub{
 	}
 	
 	@Override
-	public String register(String app_uid, DataObject data)
+	public String register(String app_uid, DataPropertiesObject data)
 			throws RemoteException {
 		Log.i(TAG, "In register()");
 				
@@ -51,7 +51,7 @@ public class SubmitServiceInterface extends ClientRemote.Stub{
 		if (submit == null) {
 			Log.e(TAG, "!!!!!!!!SubmitObject is null!!!!!!!!");
 		}
-		/* Map submission ID to DataObject */
+		/* Map submission ID to DataPropertiesObject */
 		// Here, we assume that the SubmitID
 		// is unique, so we do not check before
 		// putting it into the map
@@ -102,7 +102,7 @@ public class SubmitServiceInterface extends ClientRemote.Stub{
 	}
 	
 	@Override
-	public DataObject getDataObjectById(String submit_uid) throws RemoteException {
+	public DataPropertiesObject getDataObjectById(String submit_uid) throws RemoteException {
 		return mService.getSubmitObjectFromSubmitQueue(submit_uid).getData();
 	}
 	

@@ -6,28 +6,27 @@ import org.opendatakit.submit.flags.DataSize;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class DataObject implements Parcelable {
+public class DataPropertiesObject implements Parcelable {
 	
 	private static final int NUMBER_BOOL_FIELDS = 4; // Number of class fields that are boolean values
-	private String mPath = null;
 	private DataSize mDataSize = DataSize.NORMAL;
 	private boolean mReliable = false;
 	private boolean mFragmentable = true;
 	private boolean mResponseRequired = true;
 	private boolean mOrdered = false;
 	
-	public DataObject(String path, DataSize size, boolean reliable, boolean fragmentable, boolean ordered, boolean response, DataSize responsesize) {
+	public DataPropertiesObject(DataSize size, boolean reliable, boolean fragmentable, boolean ordered, boolean response, DataSize responsesize) {
 		setDataSize(size);
 		setReliability(reliable);
 		setFragmentability(fragmentable);
 		setOrdered(ordered);
 		setResponseRequired(response);
 	}
-	public DataObject() {
+	public DataPropertiesObject() {
 		// All presets are set
 	}
 	
-	public DataObject(Parcel in) {
+	public DataPropertiesObject(Parcel in) {
 		readFromParcel(in);
 	}
 	
@@ -51,10 +50,7 @@ public class DataObject implements Parcelable {
 	public boolean isResponseRequired() {
 		return mResponseRequired;
 	}
-	
-	public String getDataPath() {
-		return mPath;
-	}
+
 	
 	/* Setters */
 	public void setDataSize(DataSize size) {
@@ -77,9 +73,6 @@ public class DataObject implements Parcelable {
 		mResponseRequired = response;
 	}
 	
-	public void setDataPath(String path) {
-		mPath = path;
-	}
 	
 	/* Parcelable */
 	@Override
@@ -93,7 +86,6 @@ public class DataObject implements Parcelable {
 		booleanFields[1] = mFragmentable;
 		booleanFields[2] = mOrdered;
 		booleanFields[3] = mResponseRequired;
-		dest.writeString(mPath);
 		dest.writeString(mDataSize.toString());
 		dest.writeBooleanArray(booleanFields);
 		
@@ -104,7 +96,6 @@ public class DataObject implements Parcelable {
 		
 		// Important this is in the same order that Parcel is written
 		// in writeToParcel()
-		setDataPath(in.readString());
 		setDataSize(DataSize.valueOf(in.readString()));
 		
 		boolean[] booleanFields = new boolean[NUMBER_BOOL_FIELDS];
@@ -116,14 +107,14 @@ public class DataObject implements Parcelable {
 		
 	}
 	
-	public static final Parcelable.Creator<DataObject> CREATOR =
-		    new Parcelable.Creator<DataObject>() {
-		        public DataObject createFromParcel(Parcel in) {
-		            return new DataObject(in);
+	public static final Parcelable.Creator<DataPropertiesObject> CREATOR =
+		    new Parcelable.Creator<DataPropertiesObject>() {
+		        public DataPropertiesObject createFromParcel(Parcel in) {
+		            return new DataPropertiesObject(in);
 		        }
 
-		        public DataObject[] newArray(int size) {
-		            return new DataObject[size];
+		        public DataPropertiesObject[] newArray(int size) {
+		            return new DataPropertiesObject[size];
 		        }
 		    };
 }

@@ -19,7 +19,7 @@ import android.webkit.URLUtil;
 public class HttpAddress extends DestinationAddress implements Parcelable {
 	// For multipart HttpEntity
 	private HashMap<String,String> mParams = null;
-	private HttpFlags mDirection = HttpFlags.PUT;
+	private HttpFlags mFlag = HttpFlags.PUT;
 
 	/**
 	 * HttpAddress constructor
@@ -31,7 +31,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		if(URLUtil.isValidUrl(dest)) {
 			super.setAddress(dest);
 			mParams = new HashMap<String,String>();
-			mDirection = direction;
+			mFlag = direction;
 		} else {
 			throw new InvalidAddressException("Invalid URL.");
 		}
@@ -63,6 +63,10 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	public HttpAddress(Parcel in) throws InvalidAddressException {
 		super();
 		readFromParcel(in);
+	}
+	
+	public HttpFlags getHttpFlag() {
+		return mFlag;
 	}
 	
 	@Override

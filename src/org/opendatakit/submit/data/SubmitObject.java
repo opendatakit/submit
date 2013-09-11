@@ -6,7 +6,7 @@ import org.opendatakit.submit.flags.CommunicationState;
 
 /**
  * Data object in submit
- * that contains the DataObject
+ * that contains the DataPropertiesObject
  * in the SubmitServer context
  * @author mvigil
  *
@@ -14,11 +14,11 @@ import org.opendatakit.submit.flags.CommunicationState;
 public class SubmitObject {
 	private String mAppID = null;
 	private String mSubmitID = null;
-	private DataObject mData = null;
+	private DataPropertiesObject mData = null;
 	private SendObject mAddress = null;
 	private CommunicationState mState = null;
 	
-	public SubmitObject(String appID, DataObject data, SendObject addr) {
+	public SubmitObject(String appID, DataPropertiesObject data, SendObject addr) {
 		// For the SubmitID
 		Date date = new Date();
 		mAppID = appID;
@@ -29,7 +29,7 @@ public class SubmitObject {
 	}
 	
 	// Getters
-	public DataObject getData() {
+	public DataPropertiesObject getData() {
 		return mData;
 	}
 	

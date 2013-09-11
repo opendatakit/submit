@@ -19,8 +19,8 @@ public enum API implements Parcelable {
 	ODKv2, // ODKv2 for stored data
 	STUB,
 	APP, 
-	HTTP,
-	HTTPS; // for testing
+	APACHE_HTTP,
+	APACHE_HTTPS; // for testing
 
 	@Override
 	public int describeContents() {

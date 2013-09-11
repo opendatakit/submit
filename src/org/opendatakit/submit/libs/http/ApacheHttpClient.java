@@ -7,11 +7,14 @@ import java.net.URISyntaxException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
+import org.opendatakit.submit.exceptions.HttpException;
+import org.opendatakit.submit.flags.HttpFlags;
 
 import android.util.Log;
 
@@ -25,16 +28,16 @@ import android.util.Log;
  * @author mvigil
  *
  */
-public class HttpClient {
+public class ApacheHttpClient {
 	private HttpAddress mDestAddr = null;
 	private SubmitObject mSubmit = null;
-	private final String TAG = HttpClient.class.getName();
+	private final String TAG = ApacheHttpClient.class.getName();
 	
-	public HttpClient(SubmitObject submit, HttpAddress addr) {
+	public ApacheHttpClient(SubmitObject submit, HttpAddress addr) {
 		mDestAddr = addr;
 		mSubmit = submit;
 	}
-	
+
 	public int uploadData(){
 		
 		try {
@@ -48,7 +51,7 @@ public class HttpClient {
 			}
 			
 			// Turn pointer to data into File object
-			File file = new File(mSubmit.getData().getDataPath());
+			File file = new File(mSubmit.getAddress().getDataPath());
 			FileEntity fileEntity = new FileEntity(file, "image/jpeg");
 			
 			HttpResponse response = client.execute(request);

@@ -9,23 +9,28 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SendObject implements Parcelable {
-	ArrayList<DestinationAddress> mAddresses = null;
-	ArrayList<String> mFileLocations = null;
+	private String mDataPath = null;
+	private ArrayList<DestinationAddress> mAddresses = null;
+	private ArrayList<String> mFileLocations = null;
 
 	// constructors
-	public SendObject() {
+	public SendObject(String datapath) {
 		// Empty constructor
 		mAddresses = new ArrayList<DestinationAddress>();
 		mFileLocations = new ArrayList<String>();
 	}
 
 	public SendObject(Parcel in) {
-		this();
+		this(in.readString());
 		readFromParcel(in);
 	}
 
 	// Getters
 
+	public String getDataPath() {
+		return mDataPath;
+	}
+	
 	public ArrayList<DestinationAddress> getAddresses() {
 		return mAddresses;
 	}
@@ -36,6 +41,10 @@ public class SendObject implements Parcelable {
 
 	// Setters
 
+	public void setDataPath(String path) {
+		mDataPath = path;
+	}
+	
 	public void addAddresses(ArrayList<DestinationAddress> destaddrs) {
 		mAddresses.addAll(destaddrs);
 	}
@@ -59,6 +68,8 @@ public class SendObject implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		// Write mDataPath
+		dest.writeString(mDataPath);
 		// Write ArrayList<DestinationAddress>
 		dest.writeTypedList(mAddresses);
 		// Write ArrayList<String> of mFileLocations
@@ -68,7 +79,9 @@ public class SendObject implements Parcelable {
 	public void readFromParcel(Parcel in) {
 		mAddresses = new ArrayList<DestinationAddress>();
 		mFileLocations = new ArrayList<String>();
-		
+		// Read mDataPath
+		String datapath = in.readString();
+				
 		// Read ArrayList<DestinationAddress>
 		in.readTypedList(mAddresses, DestinationAddress.CREATOR);
 		// Read ArrayList<String> of mFileLocations
