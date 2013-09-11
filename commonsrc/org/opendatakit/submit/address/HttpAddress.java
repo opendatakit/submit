@@ -4,26 +4,34 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.opendatakit.submit.exceptions.InvalidAddressException;
+import org.opendatakit.submit.flags.HttpFlags;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 import android.webkit.URLUtil;
 
+/**
+ * HttpAddress
+ * @author mvigil
+ *
+ */
 public class HttpAddress extends DestinationAddress implements Parcelable {
 	// For multipart HttpEntity
 	private HashMap<String,String> mParams = null;
+	private HttpFlags mDirection = HttpFlags.PUT;
 
 	/**
 	 * HttpAddress constructor
 	 * @param dest
 	 * @throws InvalidAddressException
 	 */
-	public HttpAddress(String dest) throws InvalidAddressException {
+	public HttpAddress(String dest, HttpFlags direction) throws InvalidAddressException {
 		super();
 		if(URLUtil.isValidUrl(dest)) {
 			super.setAddress(dest);
 			mParams = new HashMap<String,String>();
+			mDirection = direction;
 		} else {
 			throw new InvalidAddressException("Invalid URL.");
 		}

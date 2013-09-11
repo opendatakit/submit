@@ -1,6 +1,7 @@
 package org.opendatakit.submit.address;
 
 import org.opendatakit.submit.exceptions.InvalidAddressException;
+import org.opendatakit.submit.flags.HttpFlags;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -19,8 +20,8 @@ public class HttpsAddress extends HttpAddress implements Parcelable {
 	 * @param dest
 	 * @throws InvalidAddressException
 	 */
-	public HttpsAddress(String dest) throws InvalidAddressException {
-		super(dest);
+	public HttpsAddress(String dest, HttpFlags flag) throws InvalidAddressException {
+		super(dest, flag);
 	}
 	
 	/**
