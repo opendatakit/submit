@@ -8,8 +8,11 @@ import java.net.URISyntaxException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
@@ -40,34 +43,30 @@ public class ApacheHttpClient {
 
 	public int uploadData(){
 		
-		try {
-			URI uri = new URI(mDestAddr.getAddress());
-			org.apache.http.client.HttpClient client = new DefaultHttpClient();
-			HttpPut request = new HttpPut(uri);
-			
-			// Set Http Headers
-			for (String key : mDestAddr.getHeaders().keySet()) {
-				request.addHeader(key, mDestAddr.getHeaders().get(key));
-			}
-			
-			// Turn pointer to data into File object
-			File file = new File(mSubmit.getAddress().getDataPath());
-			FileEntity fileEntity = new FileEntity(file, "image/jpeg");
-			
-			HttpResponse response = client.execute(request);
-			return response.getStatusLine().getStatusCode();
-		} catch (URISyntaxException e) {
-			Log.e(TAG, e.getMessage());
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			Log.e(TAG, e.getMessage());
-			e.printStackTrace();
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
-			e.printStackTrace();
-		}
-		// indicates an error/exception
-		return -1;
+		 DefaultHttpClient httpClient = new DefaultHttpClient();
+		 
+         HttpPost request = new HttpPost("https://odk-wb-test.appspot.com/submission");
+
+         MultipartEntity entity = new MultipartEntity();
+
+         // add the submission file first...
+         File file = new File(mSubmit.getAddress().getDataPath());
+         FileBody fb = new FileBody(file, "text/xml");
+         entity.addPart("xml_submission_file", fb);
+
+         request.setEntity(entity);
+
+         HttpResponse resp;
+         try {
+                resp = httpClient.execute(request);
+                int responseCode = resp.getStatusLine().getStatusCode();
+                System.out.println("ResponseCode: " + responseCode);
+         } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+         }
+         // Error
+         return -1;
 	}
 	
 //	  protected String executeStmt(String method, String urlString, String statement,

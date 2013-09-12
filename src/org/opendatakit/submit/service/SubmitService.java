@@ -111,6 +111,7 @@ public class SubmitService extends Service {
 		Log.i(TAG, "Binding to SubmitService");
 		// Set up IBinder
 		mBinder = new SubmitServiceInterface(this, mContext);
+		Log.i(TAG, "Bound to SubmitService");
 		return (IBinder)mBinder;
 	}
 	

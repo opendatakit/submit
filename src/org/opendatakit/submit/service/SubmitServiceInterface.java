@@ -17,7 +17,7 @@ import android.util.Log;
  * @author mvigil
  *
  */
-public class SubmitServiceInterface extends ClientRemote.Stub{
+public class SubmitServiceInterface extends ClientRemote.Stub {
 	
 	private final String TAG = SubmitServiceInterface.class.getName();
 	
