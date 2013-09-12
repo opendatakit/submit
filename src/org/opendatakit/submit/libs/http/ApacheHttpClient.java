@@ -2,24 +2,14 @@ package org.opendatakit.submit.libs.http;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.opendatakit.httpclientandroidlib.HttpResponse;
+import org.opendatakit.httpclientandroidlib.client.methods.HttpPost;
+import org.opendatakit.httpclientandroidlib.entity.mime.MultipartEntity;
+import org.opendatakit.httpclientandroidlib.entity.mime.content.FileBody;
+import org.opendatakit.httpclientandroidlib.impl.client.DefaultHttpClient;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
-import org.opendatakit.submit.exceptions.HttpException;
-import org.opendatakit.submit.flags.HttpFlags;
-
-import android.util.Log;
 
 /**
  * HTTP protocol client
