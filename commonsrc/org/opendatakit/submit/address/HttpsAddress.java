@@ -62,6 +62,7 @@ public class HttpsAddress extends HttpAddress implements Parcelable {
 		        }
 	};
 	
+	@Override
 	public void readFromParcel(Parcel in) {
 		try {
 			this.setAddress(in.readString());

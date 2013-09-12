@@ -16,6 +16,8 @@ import org.opendatakit.submit.flags.Radio;
 import org.opendatakit.submit.service.SubmitService;
 import org.opendatakit.submit.stubapi.SubmitAPI;
 
+import android.util.Log;
+
 /**
  * Routes SubmitObjects based on data properties
  * and available channel properties and API compatibility.
@@ -23,6 +25,7 @@ import org.opendatakit.submit.stubapi.SubmitAPI;
  *
  */
 public class CommunicationManager {
+	private String TAG = CommunicationManager.class.getName();
 	private SubmitObject mSubmitObject = null;
 	private Radio mRadio = null;
 	private SendManager mSender = null;
@@ -57,11 +60,11 @@ public class CommunicationManager {
 	 * @param radio
 	 */
 	public Object route(SubmitObject submitobj, Radio radio) {
-		API api = whichAPI(submitobj);
+		mRadio = radio;
 		// Look at the SubmitObject's current state
 		switch(submitobj.getState()) {
 			case CHANNEL_UNAVAILABLE:
-				if(dataFitsChannel(radio, submitobj.getData())) {
+				if(dataFitsChannel(mRadio, submitobj.getData())) {
 					// If the channel is ready to send the data
 					// recursively call executeTask() on the SubmitObject
 					// with the CommunicationState set to SEND
@@ -81,8 +84,9 @@ public class CommunicationManager {
 					return CommunicationState.WAITING_ON_APP_RESPONSE;
 				} else {
 					// Submit "owns" the data and is responsible for sending it.
+					Log.i(TAG, "Setting state to IN_PROGRESS");
 					submitobj.setState(CommunicationState.IN_PROGRESS);
-					mSender.updateState(submitobj, mRadio, CommunicationState.SEND);
+					mSender.updateState(submitobj, mRadio, CommunicationState.IN_PROGRESS);
 					return CommunicationState.IN_PROGRESS;
 				}
 			case IN_PROGRESS:
@@ -99,38 +103,8 @@ public class CommunicationManager {
 		}
 	}
 
-	private String getAddress(API api, ArrayList<DestinationAddress> addresses) throws InvalidAddressException {
-		String addr = getAddressTypeForAPI(api, addresses);
-		if (addr != null) {
-			// TODO return a call to an SMS sending function
-			return null;
-		} else {
-			throw new InvalidAddressException("There are no DestinationAddress formats suitable for the available APIs");
-		}
-	}
 
-	private String getAddressTypeForAPI(API api, ArrayList<DestinationAddress> addresses) {
-		for(DestinationAddress da : addresses) {
-			switch(api) {
-			case SMS:
-				if (da.getClass() == SmsAddress.class) {
-					return da.getAddress();
-				}
-			case GCM:
-				if (da.getClass() == SmsAddress.class || da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
-					return da.getAddress();
-				}
-			case ODKv2:
-				if(da.getClass() == HttpAddress.class || da.getClass() == HttpsAddress.class) {
-					return da.getAddress();
-				}
-			default:
-				break;
-			}
-		}
-		return null;
-	}
-	
+
 	/**
 	 * This is the function that makes most of the "routing"
 	 * decisions for the CommunicationManager.
@@ -175,23 +149,6 @@ public class CommunicationManager {
 		} else {
 			return false;
 		}
-	}
-
-	/**
-	 * Select the best API given the current conditions
-	 * This is going to be updated based on certain flags
-	 * that get added, such as data urgency/priority.
-	 * @param apis
-	 * @param queuedobj
-	 * @return
-	 */
-	private API whichAPI(SubmitObject submit) {
-		// TODO: Add more here when modular APIs are established
-		// For now, return STUB API no matter what
-		if(submit.getAddress() == null) {
-			return API.APP;
-		}
-		return API.STUB;
 	}
 	
 }

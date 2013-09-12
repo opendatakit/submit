@@ -112,6 +112,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		        }
 	};
 	
+
 	public void readFromParcel(Parcel in) {
 		try {
 			this.setAddress(in.readString());

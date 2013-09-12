@@ -84,6 +84,7 @@ public class SmsAddress extends DestinationAddress {
 		        }
 	};
 	
+
 	public void readFromParcel(Parcel in) {
 		try {
 			this.setAddress(in.readString());

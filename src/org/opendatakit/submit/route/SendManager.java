@@ -30,10 +30,9 @@ public class SendManager {
 	
 	public void updateState(SubmitObject submit, Radio radio, CommunicationState state) {
 		submit.setState(state);
-		if(state == CommunicationState.SEND) {
+		if(state == CommunicationState.IN_PROGRESS) {
 			Runnable run = new SendByModule(this, submit, radio);
 			Thread thread = new Thread(run);
-			mThreadList.add(thread);
 			thread.start();
 		}
 	}
@@ -130,8 +129,13 @@ public class SendManager {
 	 * @return
 	 */
 	private boolean hasHttp(ArrayList<DestinationAddress> addresses) {
+		if(addresses == null)
+		{	
+			Log.e(TAG, "!!!! address list is null !!!!");
+			return false;
+		}
 		for (DestinationAddress address : addresses) {
-			if (address.getClass().getName().equals(HttpAddress.class.getName())) {
+			if(address instanceof HttpAddress) {
 				return true;
 			}
 		}
@@ -151,16 +155,26 @@ public class SendManager {
 		
 		@Override
 		public void run() {
-			if(mSubmit == null || mRadio == null) {
+			Log.i(TAG, "SendByModule is in run()");
+			if(mSubmit == null) {
+				Log.i(TAG, "SubmitObject is null.");
+				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
+				// Callback to CommunicationManager that passes the SubmitObject 
+				// With the modified state
+				mManager.getManager().resultState(mSubmit);
 				return;
 			}
-			API api = whichAPI(mSubmit, mRadio);
-			CommunicationState result = null;
-			try {
-				DestinationAddress addr = getAddress(api, mSubmit.getAddress().getAddresses());
-			} catch (InvalidAddressException e) {
-				Log.e(SendManager.class.getName(), e.getMessage());
+			if(mRadio == null) {
+				Log.i(TAG, "Radio is null.");
+				mSubmit.setState(CommunicationState.CHANNEL_UNAVAILABLE);
+				// Callback to CommunicationManager that passes the SubmitObject 
+				// With the modified state
+				mManager.getManager().resultState(mSubmit);
+				return;
 			}
+			API api = mManager.whichAPI(mSubmit, mRadio);
+			Log.i(TAG, "API = " + api.toString());
+			
 			switch(api) {
 			case SMS:
 				// TODO SMS module
@@ -170,10 +184,12 @@ public class SendManager {
 				// TODO GCM module
 				mSubmit.setState(CommunicationState.SUCCESS);
 			case APACHE_HTTP:
+				Log.i(TAG, "Selected API is APACHE_HTTP");
 				try {
 					/* Try sending with HttpClient */
 					ApacheHttpClient client = new ApacheHttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
 					int httpcode = client.uploadData();
+					Log.i(TAG, "HTTP code: " + httpcode);
 					mSubmit.setState(httpCodeToCommunicationState(httpcode));
 				} catch (InvalidAddressException e) {
 					Log.e(TAG, e.getMessage());

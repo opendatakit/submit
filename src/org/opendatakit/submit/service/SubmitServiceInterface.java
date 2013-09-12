@@ -28,6 +28,7 @@ public class SubmitServiceInterface extends ClientRemote.Stub {
 	public SubmitServiceInterface(SubmitService service, Context context) {
 		mService = service;
 		mContext = context;
+		Log.i(TAG, "Constructed SubmitServiceInterface");
 	}
 	
 	@Override
@@ -36,7 +37,9 @@ public class SubmitServiceInterface extends ClientRemote.Stub {
 		
 		Log.i(TAG, "In submit()");
 		SubmitObject submit = new SubmitObject(app_uid, data, send);
-
+		if (submit == null) {
+			Log.e(TAG, "!!!!!!!!SubmitObject is null!!!!!!!!");
+		}
 		mService.addSubmitObject(submit);
 		//mService.manageQueue();
 		return submit.getSubmitID();

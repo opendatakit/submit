@@ -64,7 +64,16 @@ public class SendToCommunicationManager implements Runnable {
 						break;
 					case SEND:
 						Log.i(TAG, "Result was " + result.toString());
-						mService.broadcastStateToApp(top, result);
+						if (top.getAddress() != null) {
+							Log.i(TAG, "Data is registed with Submit");
+							// Route and update with the CommunicationManager
+							// This should update top with IN_PROGRESS state
+							mManager.route(top, mActiveRadio);
+							Log.i(TAG, "Finished routing with Submit");
+						} else {
+							Log.i(TAG, "Data is registed with application");
+							mService.broadcastStateToApp(top, result);
+						}
 						mService.addLastToSubmitQueue(top);
 						break;
 					case WAITING_ON_APP_RESPONSE:
