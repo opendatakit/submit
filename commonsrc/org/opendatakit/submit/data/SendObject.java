@@ -3,7 +3,6 @@ package org.opendatakit.submit.data;
 import java.util.ArrayList;
 
 import org.opendatakit.submit.address.DestinationAddress;
-import org.opendatakit.submit.flags.API;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -16,6 +15,7 @@ public class SendObject implements Parcelable {
 	// constructors
 	public SendObject(String datapath) {
 		// Empty constructor
+		mDataPath = datapath;
 		mAddresses = new ArrayList<DestinationAddress>();
 		mFileLocations = new ArrayList<String>();
 	}
@@ -80,7 +80,7 @@ public class SendObject implements Parcelable {
 		mAddresses = new ArrayList<DestinationAddress>();
 		mFileLocations = new ArrayList<String>();
 		// Read mDataPath
-		String datapath = in.readString();
+		mDataPath = in.readString();
 				
 		// Read ArrayList<DestinationAddress>
 		in.readTypedList(mAddresses, DestinationAddress.CREATOR);
