@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.http.client.methods.HttpPut;
 import org.opendatakit.httpclientandroidlib.HttpResponse;
 import org.opendatakit.httpclientandroidlib.client.methods.HttpPost;
 import org.opendatakit.httpclientandroidlib.entity.mime.MultipartEntity;
@@ -57,7 +58,6 @@ public class ApacheHttpClient {
 				File file = new File(filepath);
 				FileBody fb = new FileBody(file, "text/xml");
 				entity.addPart("xml_submission_file", fb);
-
 				request.setEntity(entity);
 
 				HttpResponse resp;

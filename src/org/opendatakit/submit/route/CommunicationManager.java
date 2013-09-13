@@ -49,8 +49,19 @@ public class CommunicationManager {
 	 * @param submit
 	 */
 	public void resultState(SubmitObject submit) {
+		Log.i(TAG, "CommunicationState: " + submit.getState().toString());
 		mSubmitService.resultState(submit);
 	}
+	
+	/**
+	 * Callback that directs back to SubmitService
+	 * and updates SubmitObject with the newest state
+	 * @param submit
+	 */
+	public void updateState(String submitObjUid, CommunicationState state) {
+		mSubmitService.updateState(submitObjUid, state);
+	}
+	
 	
 	/**
 	 * executeTask
@@ -73,6 +84,8 @@ public class CommunicationManager {
 					return CommunicationState.SEND;//route(submitobj, radio); // Bypass SubmitService
 				}
 			case SUCCESS:
+				Log.i(TAG, "in route(). case: SUCCESS");
+				return submitobj.getState();
 			case FAILURE_RETRY:
 				return submitobj.getState();
 			case SEND:

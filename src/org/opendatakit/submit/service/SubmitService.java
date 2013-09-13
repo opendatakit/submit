@@ -145,6 +145,7 @@ public class SubmitService extends Service {
 	}
 	
 	public void updateState(String submitObjUid, CommunicationState state) {
+		Log.i(TAG, "updateState(): CommunicationState: " + state);
 		SubmitObject submit = mSubmitQueue.getSubmitObjectBySubmitId(submitObjUid);
 		submit.setState(state);
 		mSubmitQueue.updateSubmitQueue(submit);

@@ -17,7 +17,6 @@ public class SendToCommunicationManager implements Runnable {
 
 	private final String TAG = SendToCommunicationManager.class.getName();
 	private SubmitService mService = null;
-	private SubmitQueue mSubmitQueue = null;
 	private CommunicationManager mManager = null;
 	private Radio mActiveRadio = null;
 	
@@ -34,7 +33,7 @@ public class SendToCommunicationManager implements Runnable {
 		// While there are submission requests in the Queue, service the queue
 		// with appropriate calls to executeTask() from the MessageManager or SyncManager
 		while(!Thread.currentThread().isInterrupted()) { // TODO this is a bit brute force-ish, but it will do for the moment
-			mSubmitQueue = mService.getSubmitQueue();
+			
 			mActiveRadio = mService.getActiveRadio();
 			mManager = mService.getCommunicationManager();
 			try {

@@ -5,14 +5,12 @@ import java.util.ArrayList;
 import org.opendatakit.submit.address.DestinationAddress;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.address.HttpsAddress;
-import org.opendatakit.submit.address.SmsAddress;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SendObject implements Parcelable {
-	private String mDataPath = null;
 	
 	/* This is so idiotic, but the way Android handles the IPC
 	 * protocol, I have to do this. If someone wants to reference
@@ -65,10 +63,6 @@ public class SendObject implements Parcelable {
 	}
 
 	// Getters
-
-	public String getDataPath() {
-		return mDataPath;
-	}
 	
 	public ArrayList<DestinationAddress> getAddresses() {
 		mAddresses = new ArrayList<DestinationAddress>();

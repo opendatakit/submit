@@ -155,6 +155,7 @@ public class SendManager {
 		@Override
 		public void run() {
 			Log.i(TAG, "SendByModule is in run()");
+			CommunicationState commstate = null;
 			if(mSubmit == null) {
 				Log.i(TAG, "SubmitObject is null.");
 				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
@@ -176,12 +177,13 @@ public class SendManager {
 			
 			switch(api) {
 			case SMS:
-				// TODO SMS module
-				mSubmit.setState(CommunicationState.SUCCESS);
-				
+				commstate = CommunicationState.FAILURE_NO_RETRY;
+				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
+				break;
 			case GCM:
-				// TODO GCM module
-				mSubmit.setState(CommunicationState.SUCCESS);
+				commstate = CommunicationState.FAILURE_NO_RETRY;
+				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
+				break;
 			case APACHE_HTTP:
 				Log.i(TAG, "Selected API is APACHE_HTTP");
 				try {
@@ -189,18 +191,26 @@ public class SendManager {
 					ApacheHttpClient client = new ApacheHttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
 					int httpcode = client.uploadData();
 					Log.i(TAG, "HTTP code: " + httpcode);
-					mSubmit.setState(httpCodeToCommunicationState(httpcode));
+					CommunicationState state = httpCodeToCommunicationState(httpcode);
+					commstate = state;
+					Log.i(TAG, "State: " + state.toString());
+					mSubmit.setState(state);
 				} catch (InvalidAddressException e) {
 					Log.e(TAG, e.getMessage());
 					e.printStackTrace();
+					commstate = CommunicationState.FAILURE_NO_RETRY;
 					mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 				}
+				break;
 			default:
 				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
+				commstate = CommunicationState.FAILURE_NO_RETRY;
+				break;
 			}
 			// Callback to CommunicationManager that passes the SubmitObject 
 			// With the modified state
-			mManager.getManager().resultState(mSubmit);
+			Log.i(TAG, "End of SendByModule.run(): CommsState: " + commstate);
+			mManager.getManager().updateState(mSubmit.getSubmitID(), commstate);
 			return;
 		}
 		
