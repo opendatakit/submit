@@ -2,6 +2,8 @@ package org.opendatakit.submit.libs.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.opendatakit.httpclientandroidlib.HttpResponse;
 import org.opendatakit.httpclientandroidlib.client.methods.HttpPost;
@@ -10,6 +12,9 @@ import org.opendatakit.httpclientandroidlib.entity.mime.content.FileBody;
 import org.opendatakit.httpclientandroidlib.impl.client.DefaultHttpClient;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
+import org.opendatakit.submit.exceptions.InvalidAddressException;
+
+import android.util.Log;
 
 /**
  * HTTP protocol client
@@ -31,30 +36,43 @@ public class ApacheHttpClient {
 		mSubmit = submit;
 	}
 
-	public int uploadData(){
+	public int uploadData() throws InvalidAddressException{
 		
-		 DefaultHttpClient httpClient = new DefaultHttpClient();
-		 
-         HttpPost request = new HttpPost("https://odk-wb-test.appspot.com/submission");
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		URI uri;
+		try {
+			if (mSubmit.getAddress().getFilePointers() == null) {
+				return -1;
+			}
+			for (String filepath : mSubmit.getAddress().getFilePointers()) {
+				if (mDestAddr.getAddress() == null) {
+					throw new InvalidAddressException("!!!! Null URI in HttpAddress !!!!");
+				}
+				uri = new URI(mDestAddr.getAddress());
+				HttpPost request = new HttpPost(uri);
 
-         MultipartEntity entity = new MultipartEntity();
+				MultipartEntity entity = new MultipartEntity();
 
-         // add the submission file first...
-         File file = new File(mSubmit.getAddress().getDataPath());
-         FileBody fb = new FileBody(file, "text/xml");
-         entity.addPart("xml_submission_file", fb);
+				// add the submission file first...
+				File file = new File(filepath);
+				FileBody fb = new FileBody(file, "text/xml");
+				entity.addPart("xml_submission_file", fb);
 
-         request.setEntity(entity);
+				request.setEntity(entity);
 
-         HttpResponse resp;
-         try {
-                resp = httpClient.execute(request);
-                int responseCode = resp.getStatusLine().getStatusCode();
-                System.out.println("ResponseCode: " + responseCode);
-         } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-         }
+				HttpResponse resp;
+
+				resp = httpClient.execute(request);
+				int responseCode = resp.getStatusLine().getStatusCode();
+				System.out.println("ResponseCode: " + responseCode);
+			}
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+			e.printStackTrace();
+         } catch (URISyntaxException e1) {
+ 			Log.e(TAG, e1.getMessage());
+ 			e1.printStackTrace();
+ 		}
          // Error
          return -1;
 	}

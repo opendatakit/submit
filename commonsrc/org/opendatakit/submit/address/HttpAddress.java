@@ -28,13 +28,13 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	 */
 	public HttpAddress(String dest, HttpFlags direction) throws InvalidAddressException {
 		super();
-		if(URLUtil.isValidUrl(dest)) {
+		//if(URLUtil.isValidUrl(dest)) {
 			super.setAddress(dest);
 			mParams = new HashMap<String,String>();
 			mFlag = direction;
-		} else {
-			throw new InvalidAddressException("Invalid URL.");
-		}
+		//} else {
+		//	throw new InvalidAddressException("Invalid URL.");
+		//}
 	}
 	
 	/**
@@ -70,12 +70,13 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	}
 	
 	@Override
+	public String getAddress() {
+		return super.getAddress();
+	}
+	
+	@Override
 	public void setAddress(String dest) throws InvalidAddressException {
-		if(URLUtil.isValidUrl(dest)) {
-			super.setAddress(dest);
-		} else {
-			throw new InvalidAddressException("Invalid URL.");
-		}
+		super.setAddress(dest);
 	}
 	
 	@Override
@@ -86,6 +87,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(getAddress());
+		dest.writeString(mFlag.toString());
 		dest.writeInt(mParams.size()); // How many pairs are in the HashMap
 		for(String key : mParams.keySet()) {
 			ArrayList<String> tuple = new ArrayList<String>();
@@ -115,7 +117,9 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 
 	public void readFromParcel(Parcel in) {
 		try {
-			this.setAddress(in.readString());
+			// read address and instantiate
+			setAddress(in.readString());
+			mFlag = HttpFlags.valueOf(in.readString());
 			int paramSize = in.readInt(); // How many pairs are in the HashMap
 			for(int i = 0; i < paramSize; i++) {
 				ArrayList<String> tuple = new ArrayList<String>();

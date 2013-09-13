@@ -28,28 +28,40 @@ public class SendObject implements Parcelable {
 	private ArrayList<DestinationAddress> mAddresses = null;
 	private ArrayList<HttpAddress> mHttpAddresses = null;
 	private ArrayList<HttpsAddress> mHttpsAddresses = null;
-	private ArrayList<SmsAddress> mSmsAddresses = null;
 	private ArrayList<String> mFileLocations = null;
 
 	// constructors
-	public SendObject(String datapath) {
-		// Empty constructor
-		mDataPath = datapath;
+	/**
+	 * If you choose to use the empty constructor
+	 * you must add file location paths so that
+	 * Submit has a way to access them.
+	 */
+	public SendObject() {
 		mHttpAddresses = new ArrayList<HttpAddress>();
 		mHttpsAddresses = new ArrayList<HttpsAddress>();
-		mSmsAddresses = new ArrayList<SmsAddress>();
+		mAddresses = new ArrayList<DestinationAddress>();
 		mFileLocations = new ArrayList<String>();
 	}
+	
+	public SendObject(String datapath) {
+		// Empty constructor
+		mHttpAddresses = new ArrayList<HttpAddress>();
+		mHttpsAddresses = new ArrayList<HttpsAddress>();
+		mAddresses = new ArrayList<DestinationAddress>();
+		mFileLocations = new ArrayList<String>();
+		mFileLocations.add(datapath);
+	}
+	
+
 
 	public SendObject(Parcel in) {
-		this(in.readString());
+		this();
 		readFromParcel(in);
 		
 		// Set up addresses as if they always existed as one list
 		mAddresses = new ArrayList<DestinationAddress>();
 		mAddresses.addAll(mHttpAddresses);
 		mAddresses.addAll(mHttpsAddresses);
-		mAddresses.addAll(mSmsAddresses);
 	}
 
 	// Getters
@@ -73,14 +85,9 @@ public class SendObject implements Parcelable {
 	// Setters
 
 	public void setDataPath(String path) {
-		mDataPath = path;
+		mFileLocations.add(path);
 	}
 	
-	/*
-	public void addAddresses(ArrayList<DestinationAddress> destaddrs) {
-		mAddresses.addAll(destaddrs);
-	}
-	*/
 
 	public void addFilePointers(ArrayList<String> filePointers) {
 		mFileLocations.addAll(filePointers);
@@ -91,10 +98,8 @@ public class SendObject implements Parcelable {
 			mHttpAddresses.add((HttpAddress)destaddr);
 		} else if (destaddr instanceof HttpsAddress) {
 			mHttpsAddresses.add((HttpsAddress)destaddr);
-		} /*else if (destaddr instanceof SmsAddress) {
-			mSmsAddresses.add((SmsAddress)destaddr);
-		} */ else {
-			throw new InvalidAddressException("This address needs to be of type HttpAddress, HttpsAddress, or SmsAddress for now. Future versions will update.");
+		} else {
+			throw new InvalidAddressException("This address needs to be of type HttpAddress or HttpsAddress for now. Future versions will update.");
 		}
 	}
 
@@ -109,30 +114,22 @@ public class SendObject implements Parcelable {
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
-		// Write mDataPath
-		dest.writeString(mDataPath);
+		
 		// Write ArrayList<HttpAddresses>
 		dest.writeTypedList(mHttpAddresses);
 		// Write ArrayList<HttpsAddresses>
 		dest.writeTypedList(mHttpsAddresses);
-		// Write ArrayList<SmsAddresses>
-		//dest.writeTypedList(mSmsAddresses);
 		// Write ArrayList<String> of mFileLocations
 		dest.writeStringList(mFileLocations);
 	}
 
 	public void readFromParcel(Parcel in) {
-		mAddresses = new ArrayList<DestinationAddress>();
-		mFileLocations = new ArrayList<String>();
-		// Read mDataPath
-		mDataPath = in.readString();
+		
 				
 		// Read ArrayList<HttpAddress>
 		in.readTypedList(mHttpAddresses, HttpAddress.CREATOR);
 		// Read ArrayList<HttpsAddress>
 		in.readTypedList(mHttpsAddresses, HttpsAddress.CREATOR);
-		// Read ArrayList<SmsAddress>
-		in.readTypedList(mSmsAddresses, SmsAddress.CREATOR);
 		// Read ArrayList<String> of mFileLocations
 		in.readStringList(mFileLocations);
 
