@@ -72,8 +72,7 @@ public class SendManager {
 	private DestinationAddress getAddress(API api, ArrayList<DestinationAddress> addresses) throws InvalidAddressException {
 		DestinationAddress addr = getAddressTypeForAPI(api, addresses);
 		if (addr != null) {
-			// TODO return a call to an SMS sending function
-			return null;
+			return addr;
 		} else {
 			throw new InvalidAddressException("There are no DestinationAddress formats suitable for the available APIs");
 		}
@@ -194,8 +193,8 @@ public class SendManager {
 				} catch (InvalidAddressException e) {
 					Log.e(TAG, e.getMessage());
 					e.printStackTrace();
+					mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 				}
-				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 			default:
 				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 			}

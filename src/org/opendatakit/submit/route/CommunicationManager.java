@@ -40,6 +40,7 @@ public class CommunicationManager {
 	 */
 	public CommunicationManager(SubmitService subserv) {
 		mSender = new SendManager(this);
+		mSubmitService = subserv;
 	}
 	
 	/**

@@ -139,7 +139,7 @@ public class SubmitService extends Service {
 	 */
 	public void resultState(SubmitObject submit) {
 		if (submit != null) {
-			Log.i(TAG, "Updating SubmiQueue with result state");
+			Log.i(TAG, "Updating SubmitQueue with result state");
 			mSubmitQueue.updateSubmitQueue(submit);
 		}
 	}

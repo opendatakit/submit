@@ -64,7 +64,8 @@ public class ApacheHttpClient {
 
 				resp = httpClient.execute(request);
 				int responseCode = resp.getStatusLine().getStatusCode();
-				System.out.println("ResponseCode: " + responseCode);
+				Log.i(TAG,"ResponseCode: " + responseCode);
+				return responseCode;
 			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
@@ -72,6 +73,9 @@ public class ApacheHttpClient {
          } catch (URISyntaxException e1) {
  			Log.e(TAG, e1.getMessage());
  			e1.printStackTrace();
+ 		} catch (NullPointerException e) {
+ 			Log.e(TAG, "NullPointerException");
+ 			e.printStackTrace();
  		}
          // Error
          return -1;
