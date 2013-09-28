@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import org.apache.http.client.methods.HttpPut;
 import org.opendatakit.httpclientandroidlib.HttpResponse;
@@ -15,7 +19,10 @@ import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 
+import android.os.Environment;
+import android.text.format.DateFormat;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 /**
  * HTTP protocol client
@@ -51,14 +58,90 @@ public class ApacheHttpClient {
 				}
 				uri = new URI(mDestAddr.getAddress());
 				HttpPost request = new HttpPost(uri);
-
+				
 				MultipartEntity entity = new MultipartEntity();
 
-				// add the submission file first...
+				// Get file metadata
 				File file = new File(filepath);
+				String fileName = file.getName();
+                int idx = fileName.lastIndexOf(".");
+                String extension = "";
+				if (idx != -1) {
+	                 extension = filepath.substring(idx + 1);
+	             }
+				
+				FileBody fb;
+				MimeTypeMap m = MimeTypeMap.getSingleton();
+	            long byteCount = 0L;
+                String contentType = m.getMimeTypeFromExtension(extension);
+
+                // we will be processing every one of these, so
+                // we only need to deal with the content type determination...
+                if (extension.equals("xml")) {
+                    fb = new FileBody(file, "text/xml");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added xml file " + file.getName());
+                } else if (extension.equals("jpg")) {
+                    fb = new FileBody(file, "image/jpeg");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added image file " + file.getName());
+                } else if (extension.equals("3gpp")) {
+                    fb = new FileBody(file, "audio/3gpp");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added audio file " + file.getName());
+                } else if (extension.equals("3gp")) {
+                    fb = new FileBody(file, "video/3gpp");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added video file " + file.getName());
+                } else if (extension.equals("mp4")) {
+                    fb = new FileBody(file, "video/mp4");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added video file " + file.getName());
+                } else if (extension.equals("csv")) {
+                    fb = new FileBody(file, "text/csv");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added csv file " + file.getName());
+                } else if (file.getName().endsWith(".amr")) {
+                    fb = new FileBody(file, "audio/amr");
+                    entity.addPart(file.getName(), fb);
+                    Log.i(TAG, "added audio file " + file.getName());
+                } else if (extension.equals("xls")) {
+                    fb = new FileBody(file, "application/vnd.ms-excel");
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG, "added xls file " + file.getName());
+                } else if (contentType != null) {
+                    fb = new FileBody(file, contentType);
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.i(TAG,
+                        "added recognized filetype (" + contentType + ") " + file.getName());
+                } else {
+                    contentType = "application/octet-stream";
+                    fb = new FileBody(file, contentType);
+                    entity.addPart(file.getName(), fb);
+                    byteCount += file.length();
+                    Log.w(TAG, "added unrecognized file (" + contentType + ") " + file.getName());
+                }
+				
+                /*
 				FileBody fb = new FileBody(file, "text/xml");
 				entity.addPart("xml_submission_file", fb);
-				request.setEntity(entity);
+				*/
+				
+                request.setEntity(entity);
+				
+	
+				// Set headers
+				for(String key : mDestAddr.getHeaders().keySet()) {
+					request.addHeader(key, mDestAddr.getHeaders().get(key));
+				}
 
 				HttpResponse resp;
 

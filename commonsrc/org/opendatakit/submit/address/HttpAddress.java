@@ -92,12 +92,14 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		dest.writeString(mFlag.toString());
 		// Http number of parameters
 		dest.writeInt(mParams.size()); // How many pairs are in the HashMap
-		for(String key : mParams.keySet()) {
-			// TODO: Make this a prettier solution
-			ArrayList<String> tuple = new ArrayList<String>();
-			tuple.add(key);
-			tuple.add(mParams.get(key));
-			dest.writeStringList(tuple);
+		if (mParams.size() > 0) {
+			for(String key : mParams.keySet()) {
+				// TODO: Make this a prettier solution
+				ArrayList<String> tuple = new ArrayList<String>();
+				tuple.add(key);
+				tuple.add(mParams.get(key));
+				dest.writeStringList(tuple);
+			}
 		}
 	}
 	
@@ -111,10 +113,12 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 			mFlag = HttpFlags.valueOf(in.readString());
 			//Read number of flags
 			int paramSize = in.readInt(); // How many pairs are in the HashMap
-			for(int i = 0; i < paramSize; i++) {
-				ArrayList<String> tuple = new ArrayList<String>();
-				in.readArrayList(String.class.getClassLoader());
-				mParams.put(tuple.get(0), tuple.get(1));
+			if (paramSize > 0) {
+				for(int i = 0; i < paramSize; i++) {
+					ArrayList<String> tuple = new ArrayList<String>();
+					in.readStringList(tuple);
+					mParams.put(tuple.get(0), tuple.get(1));
+				}
 			}
 		} catch (InvalidAddressException e) {
 			Log.e(HttpAddress.class.getName(), e.getMessage());
