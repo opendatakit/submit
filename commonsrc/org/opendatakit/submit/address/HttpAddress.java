@@ -91,17 +91,6 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		// HttpFlags
 		dest.writeString(mFlag.toString());
 		dest.writeMap(mParams);
-		// Http number of parameters
-		/*dest.writeInt(mParams.size()); // How many pairs are in the HashMap
-		if (mParams.size() > 0) {
-			for(String key : mParams.keySet()) {
-				// TODO: Make this a prettier solution
-				ArrayList<String> tuple = new ArrayList<String>();
-				tuple.add(key);
-				tuple.add(mParams.get(key));
-				dest.writeStringList(tuple);
-			}
-		}*/
 	}
 	
 	public void readFromParcel(Parcel in) {
@@ -113,15 +102,6 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 			// Read HttpFlags
 			mFlag = HttpFlags.valueOf(in.readString());
 			mParams = in.readHashMap(HashMap.class.getClassLoader());
-			//Read number of flags
-			/*int paramSize = in.readInt(); // How many pairs are in the HashMap
-			if (paramSize > 0) {
-				for(int i = 0; i < paramSize; i++) {
-					ArrayList<String> tuple = new ArrayList<String>();
-					in.readStringList(tuple);
-					mParams.put(tuple.get(0), tuple.get(1));
-				}
-			}*/
 		} catch (InvalidAddressException e) {
 			Log.e(HttpAddress.class.getName(), e.getMessage());
 			e.printStackTrace();

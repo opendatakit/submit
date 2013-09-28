@@ -62,14 +62,13 @@ public class ApacheHttpClient {
 				MultipartEntity entity = new MultipartEntity();
 
 				// Get file metadata
-				File file = new File(filepath);
-				String fileName = file.getName();
-                int idx = fileName.lastIndexOf(".");
+				File file = new File(filepath); //works
+                int idx = filepath.lastIndexOf(".");
                 String extension = "";
 				if (idx != -1) {
 	                 extension = filepath.substring(idx + 1);
 	             }
-				
+				Log.i(TAG, "extension = " + extension);
 				FileBody fb;
 				MimeTypeMap m = MimeTypeMap.getSingleton();
 	            long byteCount = 0L;
@@ -79,62 +78,68 @@ public class ApacheHttpClient {
                 // we only need to deal with the content type determination...
                 if (extension.equals("xml")) {
                     fb = new FileBody(file, "text/xml");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("xml_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added xml file " + file.getName());
                 } else if (extension.equals("jpg")) {
                     fb = new FileBody(file, "image/jpeg");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("jpg_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added image file " + file.getName());
                 } else if (extension.equals("3gpp")) {
                     fb = new FileBody(file, "audio/3gpp");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("3gpp_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added audio file " + file.getName());
                 } else if (extension.equals("3gp")) {
                     fb = new FileBody(file, "video/3gpp");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("3gp_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added video file " + file.getName());
                 } else if (extension.equals("mp4")) {
                     fb = new FileBody(file, "video/mp4");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("mp4_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added video file " + file.getName());
                 } else if (extension.equals("csv")) {
                     fb = new FileBody(file, "text/csv");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("csv_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added csv file " + file.getName());
                 } else if (file.getName().endsWith(".amr")) {
                     fb = new FileBody(file, "audio/amr");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("amr_submission_file", fb);
                     Log.i(TAG, "added audio file " + file.getName());
                 } else if (extension.equals("xls")) {
                     fb = new FileBody(file, "application/vnd.ms-excel");
-                    entity.addPart(file.getName(), fb);
+                    entity.addPart("vnd.ms-excel_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added xls file " + file.getName());
                 } else if (contentType != null) {
                     fb = new FileBody(file, contentType);
-                    entity.addPart(file.getName(), fb);
+                    int i = contentType.lastIndexOf("/");
+                    String ext = "";
+                    if (i  >= 0) { 
+                    	ext = contentType.substring(i);
+                    }
+                    entity.addPart(ext + "_submission_file", fb);
                     byteCount += file.length();
                     Log.i(TAG,
                         "added recognized filetype (" + contentType + ") " + file.getName());
                 } else {
                     contentType = "application/octet-stream";
                     fb = new FileBody(file, contentType);
-                    entity.addPart(file.getName(), fb);
+                    int i = contentType.lastIndexOf("/");
+                    String ext = "";
+                    if (i  >= 0) { 
+                    	ext = contentType.substring(i);
+                    }
+                    entity.addPart(ext + "_submission_file", fb);
                     byteCount += file.length();
                     Log.w(TAG, "added unrecognized file (" + contentType + ") " + file.getName());
                 }
 				
-                /*
-				FileBody fb = new FileBody(file, "text/xml");
-				entity.addPart("xml_submission_file", fb);
-				*/
-				
+                // Set request entity
                 request.setEntity(entity);
 				
 	
