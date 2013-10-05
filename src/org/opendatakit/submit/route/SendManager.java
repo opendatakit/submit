@@ -15,6 +15,13 @@ import org.opendatakit.submit.libs.http.ApacheHttpClient;
 
 import android.util.Log;
 
+/**
+ * SendManager determines which SendObject data
+ * to use based on available channel properties and
+ * DataPropertiesObject. 
+ * @author mvigil
+ *
+ */
 public class SendManager {
 	
 	private final String TAG = SendManager.class.getName();
@@ -69,6 +76,13 @@ public class SendManager {
 		return CommunicationState.FAILURE_NO_RETRY;
 	}
 	
+	/**
+	 * Get DestinationAddress from SendObject
+	 * @param api
+	 * @param addresses
+	 * @return
+	 * @throws InvalidAddressException
+	 */
 	private DestinationAddress getAddress(API api, ArrayList<DestinationAddress> addresses) throws InvalidAddressException {
 		DestinationAddress addr = getAddressTypeForAPI(api, addresses);
 		if (addr != null) {
@@ -78,6 +92,12 @@ public class SendManager {
 		}
 	}
 
+	/**
+	 * Get appropriate address for the selected API
+	 * @param api
+	 * @param addresses
+	 * @return
+	 */
 	private DestinationAddress getAddressTypeForAPI(API api, ArrayList<DestinationAddress> addresses) {
 		for(DestinationAddress da : addresses) {
 			switch(api) {
@@ -141,6 +161,11 @@ public class SendManager {
 		return false;
 	}
 
+	/**
+	 * TODO: This needs to be pulled out into it's own class
+	 * @author mvigil
+	 *
+	 */
 	private class SendByModule implements Runnable {
 		private SubmitObject mSubmit = null;
 		private Radio mRadio = null;
