@@ -18,6 +18,8 @@ import org.opendatakit.httpclientandroidlib.impl.client.DefaultHttpClient;
 import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
+import org.opendatakit.submit.flags.CommunicationState;
+import org.opendatakit.submit.interfaces.ProtocolInterface;
 
 import android.os.Environment;
 import android.text.format.DateFormat;
@@ -34,7 +36,7 @@ import android.webkit.MimeTypeMap;
  * @author mvigil
  *
  */
-public class ApacheHttpClient {
+public class ApacheHttpClient implements ProtocolInterface {
 	private HttpAddress mDestAddr = null;
 	private SubmitObject mSubmit = null;
 	private final String TAG = ApacheHttpClient.class.getName();
@@ -44,13 +46,13 @@ public class ApacheHttpClient {
 		mSubmit = submit;
 	}
 
-	public int uploadData() throws InvalidAddressException{
+	public CommunicationState uploadData() throws InvalidAddressException{
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		URI uri;
 		try {
 			if (mSubmit.getAddress().getFilePointers() == null) {
-				return -1;
+				return CommunicationState.FAILURE_NO_RETRY;
 			}
 			for (String filepath : mSubmit.getAddress().getFilePointers()) {
 				if (mDestAddr.getAddress() == null) {
@@ -153,7 +155,7 @@ public class ApacheHttpClient {
 				resp = httpClient.execute(request);
 				int responseCode = resp.getStatusLine().getStatusCode();
 				Log.i(TAG,"ResponseCode: " + responseCode);
-				return responseCode;
+				return httpCodeToCommunicationState(responseCode);
 			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
@@ -166,7 +168,29 @@ public class ApacheHttpClient {
  			e.printStackTrace();
  		}
          // Error
-         return -1;
+         return CommunicationState.FAILURE_NO_RETRY;
+	}
+	
+	/**
+	 * Given an HTTP code, return a corresponding CommunicationState
+	 * @return
+	 */
+	private CommunicationState httpCodeToCommunicationState(int code) {
+		if (200 <= code && code < 300) {
+			Log.i(TAG, "HTTP Response Code: Successful "+ Integer.toString(code));
+			return CommunicationState.SUCCESS;
+		} else if (300 <= code && code < 400) {
+			Log.i(TAG, "HTTP Response Code: Redirection "+ Integer.toString(code));
+			return CommunicationState.FAILURE_RETRY;
+		} else if (400 <= code && code < 500) {
+			Log.i(TAG, "HTTP Response Code: Client Error "+ Integer.toString(code));
+			return CommunicationState.FAILURE_RETRY;
+		} else if (500 <= code && code < 600) {
+			Log.i(TAG, "HTTP Response Code: Server Error "+ Integer.toString(code));
+			return CommunicationState.FAILURE_NO_RETRY;
+		}
+		Log.i(TAG, "!!!! No recognizable HTTP Response Code !!!! "+ Integer.toString(code));
+		return CommunicationState.FAILURE_NO_RETRY;
 	}
 	
 //	  protected String executeStmt(String method, String urlString, String statement,

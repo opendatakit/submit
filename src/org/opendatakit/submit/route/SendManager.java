@@ -54,27 +54,7 @@ public class SendManager {
 	
 	/* Private functions */
 	
-	/**
-	 * Given an HTTP code, return a corresponding CommunicationState
-	 * @return
-	 */
-	private CommunicationState httpCodeToCommunicationState(int code) {
-		if (200 <= code && code < 300) {
-			Log.i(TAG, "HTTP Response Code: Successful "+ Integer.toString(code));
-			return CommunicationState.SUCCESS;
-		} else if (300 <= code && code < 400) {
-			Log.i(TAG, "HTTP Response Code: Redirection "+ Integer.toString(code));
-			return CommunicationState.FAILURE_RETRY;
-		} else if (400 <= code && code < 500) {
-			Log.i(TAG, "HTTP Response Code: Client Error "+ Integer.toString(code));
-			return CommunicationState.FAILURE_RETRY;
-		} else if (500 <= code && code < 600) {
-			Log.i(TAG, "HTTP Response Code: Server Error "+ Integer.toString(code));
-			return CommunicationState.FAILURE_NO_RETRY;
-		}
-		Log.i(TAG, "!!!! No recognizable HTTP Response Code !!!! "+ Integer.toString(code));
-		return CommunicationState.FAILURE_NO_RETRY;
-	}
+	
 	
 	/**
 	 * Get DestinationAddress from SendObject
@@ -214,9 +194,7 @@ public class SendManager {
 				try {
 					/* Try sending with HttpClient */
 					ApacheHttpClient client = new ApacheHttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
-					int httpcode = client.uploadData();
-					Log.i(TAG, "HTTP code: " + httpcode);
-					CommunicationState state = httpCodeToCommunicationState(httpcode);
+					CommunicationState state = client.uploadData();
 					commstate = state;
 					Log.i(TAG, "State: " + state.toString());
 					mSubmit.setState(state);
