@@ -194,20 +194,24 @@ public class SendManager {
 				try {
 					/* Try sending with HttpClient */
 					ApacheHttpClient client = new ApacheHttpClient(mSubmit, (HttpAddress)getAddress(api, mSubmit.getAddress().getAddresses()));
-					CommunicationState state = client.uploadData();
+					int code = client.uploadData();
+					CommunicationState state = client.httpCodeToCommunicationState(code);
 					commstate = state;
 					Log.i(TAG, "State: " + state.toString());
 					mSubmit.setState(state);
+					mSubmit.setCode(code);
 				} catch (InvalidAddressException e) {
 					Log.e(TAG, e.getMessage());
 					e.printStackTrace();
 					commstate = CommunicationState.FAILURE_NO_RETRY;
 					mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
+					mSubmit.setCode(-1);
 				}
 				break;
 			default:
 				mSubmit.setState(CommunicationState.FAILURE_NO_RETRY);
 				commstate = CommunicationState.FAILURE_NO_RETRY;
+				mSubmit.setCode(-1);
 				break;
 			}
 			// Callback to CommunicationManager that passes the SubmitObject 

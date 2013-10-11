@@ -126,7 +126,8 @@ public class SubmitService extends Service {
 		intent.setAction(submit.getAppID());
 		intent.putExtra(BroadcastExtraKeys.COMMUNICATION_STATE, state.toString());
 		intent.putExtra(BroadcastExtraKeys.SUBMIT_OBJECT_ID, submit.getSubmitID());
-		sendBroadcast(intent);
+		intent.putExtra(BroadcastExtraKeys.HTTP_RETURN_CODE, Integer.toString(submit.getCode()));
+		getApplicationContext().sendBroadcast(intent);
 		Log.i(TAG,"Sent broadcast to " + submit.getAppID());
 	}
 		
@@ -224,4 +225,6 @@ public class SubmitService extends Service {
 			Log.e(TAG, e.getMessage());
 		}
 	}
+
+
 }

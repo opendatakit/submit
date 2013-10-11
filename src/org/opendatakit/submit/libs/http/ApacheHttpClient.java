@@ -21,6 +21,7 @@ import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.interfaces.ProtocolInterface;
 
+import android.net.TrafficStats;
 import android.os.Environment;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -36,7 +37,7 @@ import android.webkit.MimeTypeMap;
  * @author mvigil
  *
  */
-public class ApacheHttpClient implements ProtocolInterface {
+public class ApacheHttpClient /*implements ProtocolInterface*/ {
 	private HttpAddress mDestAddr = null;
 	private SubmitObject mSubmit = null;
 	private final String TAG = ApacheHttpClient.class.getName();
@@ -46,13 +47,13 @@ public class ApacheHttpClient implements ProtocolInterface {
 		mSubmit = submit;
 	}
 
-	public CommunicationState uploadData() throws InvalidAddressException{
+	public int uploadData() throws InvalidAddressException{
 		
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		URI uri;
 		try {
 			if (mSubmit.getAddress().getFilePointers() == null) {
-				return CommunicationState.FAILURE_NO_RETRY;
+				return -1;
 			}
 			for (String filepath : mSubmit.getAddress().getFilePointers()) {
 				if (mDestAddr.getAddress() == null) {
@@ -85,7 +86,7 @@ public class ApacheHttpClient implements ProtocolInterface {
                     Log.i(TAG, "added xml file " + file.getName());
                 } else if (extension.equals("jpg")) {
                     fb = new FileBody(file, "image/jpeg");
-                    entity.addPart("jpg_submission_file", fb);
+                    entity.addPart("uploadedfile", fb);
                     byteCount += file.length();
                     Log.i(TAG, "added image file " + file.getName());
                 } else if (extension.equals("3gpp")) {
@@ -152,10 +153,13 @@ public class ApacheHttpClient implements ProtocolInterface {
 
 				HttpResponse resp;
 
+				// Set TrafficStats tag
+				TrafficStats.setThreadStatsTag(0xF001);
 				resp = httpClient.execute(request);
+				TrafficStats.clearThreadStatsTag();
 				int responseCode = resp.getStatusLine().getStatusCode();
 				Log.i(TAG,"ResponseCode: " + responseCode);
-				return httpCodeToCommunicationState(responseCode);
+				return responseCode;
 			}
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
@@ -168,14 +172,15 @@ public class ApacheHttpClient implements ProtocolInterface {
  			e.printStackTrace();
  		}
          // Error
-         return CommunicationState.FAILURE_NO_RETRY;
+         return -1;
 	}
 	
 	/**
 	 * Given an HTTP code, return a corresponding CommunicationState
+	 * @return 
 	 * @return
 	 */
-	private CommunicationState httpCodeToCommunicationState(int code) {
+	public CommunicationState httpCodeToCommunicationState(int code) {
 		if (200 <= code && code < 300) {
 			Log.i(TAG, "HTTP Response Code: Successful "+ Integer.toString(code));
 			return CommunicationState.SUCCESS;

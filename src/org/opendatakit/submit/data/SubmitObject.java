@@ -17,6 +17,7 @@ public class SubmitObject {
 	private DataPropertiesObject mData = null;
 	private SendObject mAddress = null;
 	private CommunicationState mState = null;
+	private int mCode = -1;
 	
 	public SubmitObject(String appID, DataPropertiesObject data, SendObject addr) {
 		// For the SubmitID
@@ -52,6 +53,16 @@ public class SubmitObject {
 	// Setters
 	public void setState(CommunicationState state) {
 		mState = state;
+	}
+
+	public void setCode(int code) {
+		mCode = code;
+		
+	}
+
+	public int getCode() {
+		// TODO Auto-generated method stub
+		return mCode;
 	}
 	
 }

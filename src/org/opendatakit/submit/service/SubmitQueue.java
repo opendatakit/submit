@@ -1,14 +1,17 @@
 package org.opendatakit.submit.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.opendatakit.submit.data.SubmitObject;
 
 public class SubmitQueue {
 	// TODO reimagine some of these data structures
-	private LinkedList<SubmitObject> mSubmitQueue = null; // Keeps track of all SubmitObjects and keeps them in a FIFO queue
+  private ConcurrentLinkedQueue<SubmitObject> mSubmitQueue;
+//	private LinkedList<SubmitObject> mSubmitQueue = null; // Keeps track of all SubmitObjects and keeps them in a FIFO queue
 	private HashMap<String, ArrayList<String>> mAppIdToSubmitIds = null; // Keeps track of all SubmitObjects that belong to a given app. Maps list of SubmitIDs to an AppID.
 	private HashMap<String, SubmitObject> mSubmitIdToSubmitObject = null;
 	
@@ -16,12 +19,14 @@ public class SubmitQueue {
 	 * Empty constructor
 	 */
 	public SubmitQueue() {
-		mSubmitQueue = new LinkedList<SubmitObject>();
+	  mSubmitQueue = new ConcurrentLinkedQueue();
+//		mSubmitQueue = new LinkedList<SubmitObject>();
 		mAppIdToSubmitIds = new HashMap<String, ArrayList<String>>();
 		mSubmitIdToSubmitObject = new HashMap<String, SubmitObject>();
 	}
 	
-	public LinkedList<SubmitObject> getSubmitObjectQueue() {
+//	public LinkedList<SubmitObject> getSubmitObjectQueue() {
+	public ConcurrentLinkedQueue<SubmitObject> getSubmitObjectQueue() {
 		return mSubmitQueue;
 	}
 	
@@ -29,7 +34,8 @@ public class SubmitQueue {
 		return mSubmitQueue.size();
 	}
 	
-	public LinkedList<SubmitObject> getSubmitQueue() {
+//	public LinkedList<SubmitObject> getSubmitQueue() {
+	public ConcurrentLinkedQueue<SubmitObject> getSubmitQueue() {
 		return mSubmitQueue;
 	}
 	
@@ -38,12 +44,11 @@ public class SubmitQueue {
 	}
 	
 	public void updateSubmitQueue(SubmitObject submit) {
-		synchronized(mSubmitQueue){
-			for(SubmitObject sub : mSubmitQueue) {
-				if(submit.getSubmitID().equals(sub.getSubmitID())) {
-					removeSubmitObjectFromQueue(sub);
-					addSubmitObjectToQueue(submit);
-				}
+		
+		for(SubmitObject sub : mSubmitQueue) {
+			if(submit.getSubmitID().equals(sub.getSubmitID())) {
+				removeSubmitObjectFromQueue(sub);
+				addSubmitObjectToQueue(submit);
 			}
 		}
 	}
@@ -57,31 +62,27 @@ public class SubmitQueue {
 	}
 	
 	public void addSubmitObjectLast(SubmitObject submit) {
-		synchronized(mSubmitQueue) {
-			mSubmitQueue.addLast(submit);
-		}
+	  mSubmitQueue.add(submit);
+//		mSubmitQueue.addLast(submit);
 		addSubmitIdToAppIdMap(submit);
 		mSubmitIdToSubmitObject.put(submit.getSubmitID(), submit);
 	}
 	
 	public SubmitObject popTopSubmitObject() {
-		SubmitObject top = mSubmitQueue.getFirst();
+	  SubmitObject top = mSubmitQueue.poll();
+//		SubmitObject top = mSubmitQueue.getFirst();
 		removeSubmitObjectFromQueue(top);
 		return top;
 	}
 	
 	public void addSubmitObjectToQueue(SubmitObject submit) {
-		synchronized(mSubmitQueue) {
-			mSubmitQueue.add(submit);
-		}	
+		mSubmitQueue.add(submit);
 		addSubmitIdToAppIdMap(submit);
 		mSubmitIdToSubmitObject.put(submit.getSubmitID(), submit);
 	}
 	
 	public void removeSubmitObjectFromQueue(SubmitObject submit) {
-		synchronized(mSubmitQueue) {
-			mSubmitQueue.remove(submit);
-		}
+		mSubmitQueue.remove(submit);
 		removeSubmitIdFromAppIdMap(submit.getAppID(), submit.getSubmitID());
 	}
 	
@@ -92,13 +93,11 @@ public class SubmitQueue {
 	 * ApplicationID and SubmitID.
 	 */
 	public void removeSubmitObjectFromQueue(String app_id, String submit_id) {
-		synchronized(mSubmitQueue) {
-			for (SubmitObject submit : mSubmitQueue) {
-				// Go through each SubmitObject on mSubmitQueue
-				// and compare the SubmitIDs
-				if (submit_id.equals(submit.getSubmitID())) {
-					mSubmitQueue.remove(submit);
-				}
+		for (SubmitObject submit : mSubmitQueue) {
+			// Go through each SubmitObject on mSubmitQueue
+			// and compare the SubmitIDs
+			if (submit_id.equals(submit.getSubmitID())) {
+				mSubmitQueue.remove(submit);
 			}
 		}
 		removeSubmitIdFromAppIdMap(app_id, submit_id);
@@ -111,9 +110,7 @@ public class SubmitQueue {
 		if (submitids == null) {
 			submitids = new ArrayList<String>();
 		}
-		synchronized(mSubmitQueue) {
-			submitids.add(submit.getSubmitID());
-		}
+		submitids.add(submit.getSubmitID());
 		mAppIdToSubmitIds.put(submit.getAppID(), submitids);
 	}
 	

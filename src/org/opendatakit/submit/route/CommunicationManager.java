@@ -149,6 +149,8 @@ public class CommunicationManager {
 				// in price will be critical as well
 				if (size == DataSize.LARGE) {
 					return false;
+				} if(size == DataSize.SMALL) {
+					return true;
 				}
 			case WIFI:
 				return true;
