@@ -4,12 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
-import org.apache.http.client.methods.HttpPut;
 import org.opendatakit.httpclientandroidlib.HttpResponse;
 import org.opendatakit.httpclientandroidlib.client.methods.HttpPost;
 import org.opendatakit.httpclientandroidlib.entity.mime.MultipartEntity;
@@ -19,11 +14,8 @@ import org.opendatakit.submit.address.HttpAddress;
 import org.opendatakit.submit.data.SubmitObject;
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 import org.opendatakit.submit.flags.CommunicationState;
-import org.opendatakit.submit.interfaces.ProtocolInterface;
 
 import android.net.TrafficStats;
-import android.os.Environment;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -33,7 +25,7 @@ import android.webkit.MimeTypeMap;
  * mechanism by which media
  * file "attachments" are sent
  * over the network.
- * 
+ *
  * @author mvigil
  *
  */
@@ -41,14 +33,14 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
 	private HttpAddress mDestAddr = null;
 	private SubmitObject mSubmit = null;
 	private final String TAG = ApacheHttpClient.class.getName();
-	
+
 	public ApacheHttpClient(SubmitObject submit, HttpAddress addr) {
 		mDestAddr = addr;
 		mSubmit = submit;
 	}
 
 	public int uploadData() throws InvalidAddressException{
-		
+
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		URI uri;
 		try {
@@ -61,7 +53,7 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
 				}
 				uri = new URI(mDestAddr.getAddress());
 				HttpPost request = new HttpPost(uri);
-				
+
 				MultipartEntity entity = new MultipartEntity();
 
 				// Get file metadata
@@ -122,7 +114,7 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
                     fb = new FileBody(file, contentType);
                     int i = contentType.lastIndexOf("/");
                     String ext = "";
-                    if (i  >= 0) { 
+                    if (i  >= 0) {
                     	ext = contentType.substring(i);
                     }
                     entity.addPart(ext + "_submission_file", fb);
@@ -134,18 +126,18 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
                     fb = new FileBody(file, contentType);
                     int i = contentType.lastIndexOf("/");
                     String ext = "";
-                    if (i  >= 0) { 
+                    if (i  >= 0) {
                     	ext = contentType.substring(i);
                     }
                     entity.addPart(ext + "_submission_file", fb);
                     byteCount += file.length();
                     Log.w(TAG, "added unrecognized file (" + contentType + ") " + file.getName());
                 }
-				
+
                 // Set request entity
                 request.setEntity(entity);
-				
-	
+
+
 				// Set headers
 				for(String key : mDestAddr.getHeaders().keySet()) {
 					request.addHeader(key, mDestAddr.getHeaders().get(key));
@@ -174,10 +166,10 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
          // Error
          return -1;
 	}
-	
+
 	/**
 	 * Given an HTTP code, return a corresponding CommunicationState
-	 * @return 
+	 * @return
 	 * @return
 	 */
 	public CommunicationState httpCodeToCommunicationState(int code) {
@@ -197,7 +189,7 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
 		Log.i(TAG, "!!!! No recognizable HTTP Response Code !!!! "+ Integer.toString(code));
 		return CommunicationState.FAILURE_NO_RETRY;
 	}
-	
+
 //	  protected String executeStmt(String method, String urlString, String statement,
 //		      List<NameValuePair> qparams, boolean isFTQuery, CallingContext cc) throws ServiceException,
 //		      IOException, ODKExternalServiceException, GeneralSecurityException {
@@ -252,5 +244,5 @@ public class ApacheHttpClient /*implements ProtocolInterface*/ {
 //
 //		    return response;
 //		  }
-	
+
 }

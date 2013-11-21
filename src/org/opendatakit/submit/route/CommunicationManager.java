@@ -1,15 +1,7 @@
 package org.opendatakit.submit.route;
 
-import java.util.ArrayList;
-
-import org.opendatakit.submit.address.DestinationAddress;
-import org.opendatakit.submit.address.HttpAddress;
-import org.opendatakit.submit.address.HttpsAddress;
-import org.opendatakit.submit.address.SmsAddress;
 import org.opendatakit.submit.data.DataPropertiesObject;
 import org.opendatakit.submit.data.SubmitObject;
-import org.opendatakit.submit.exceptions.InvalidAddressException;
-import org.opendatakit.submit.flags.API;
 import org.opendatakit.submit.flags.CommunicationState;
 import org.opendatakit.submit.flags.DataSize;
 import org.opendatakit.submit.flags.Radio;
@@ -30,10 +22,10 @@ public class CommunicationManager {
 	private Radio mRadio = null;
 	private SendManager mSender = null;
 	private SubmitService mSubmitService = null;
-	
+
 	// TODO for testing purposes
 	SubmitAPI mSubmitAPI = new SubmitAPI();
-	
+
 	/**
 	 * Constructor from Context
 	 * @param context
@@ -42,7 +34,7 @@ public class CommunicationManager {
 		mSender = new SendManager(this);
 		mSubmitService = subserv;
 	}
-	
+
 	/**
 	 * Callback that directs back to SubmitService
 	 * and updates SubmitObject with the newest state
@@ -52,7 +44,7 @@ public class CommunicationManager {
 		Log.i(TAG, "CommunicationState: " + submit.getState().toString());
 		mSubmitService.resultState(submit);
 	}
-	
+
 	/**
 	 * Callback that directs back to SubmitService
 	 * and updates SubmitObject with the newest state
@@ -61,8 +53,8 @@ public class CommunicationManager {
 	public void updateState(String submitObjUid, CommunicationState state) {
 		mSubmitService.updateState(submitObjUid, state);
 	}
-	
-	
+
+
 	/**
 	 * executeTask
 	 * Given a Submit and the active radio,
@@ -89,7 +81,7 @@ public class CommunicationManager {
 			case FAILURE_RETRY:
 				return submitobj.getState();
 			case SEND:
-				// Check to see if the SubmitObject is registered 
+				// Check to see if the SubmitObject is registered
 				// to send over a Submit API module or by the
 				// application that submitted it
 				if(submitobj.getAddress() == null) {
@@ -124,8 +116,8 @@ public class CommunicationManager {
 	 * decisions for the CommunicationManager.
 	 * Eventually, I want to be able to read from a properties
 	 * file in order to do do some more customizable rules
-	 * pertaining to cost. 
-	 * 
+	 * pertaining to cost.
+	 *
 	 * @param radio
 	 * @param data
 	 * @return
@@ -166,5 +158,5 @@ public class CommunicationManager {
 			return false;
 		}
 	}
-	
+
 }

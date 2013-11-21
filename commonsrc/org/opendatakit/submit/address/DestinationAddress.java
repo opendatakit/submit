@@ -3,24 +3,20 @@ package org.opendatakit.submit.address;
 
 import org.opendatakit.submit.exceptions.InvalidAddressException;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
-
 public abstract class DestinationAddress {
-	
+
 	private String mAddress;
 	private static final String TAG = "DestinationAddress";
-	
+
 	/**
 	 * DestinationAddress constructor
 	 */
 	public DestinationAddress() {
 		// Empty constructor
 	}
-	
 
-	
+
+
 	// Getters
 	/**
 	 * Get the URI or telephone number
@@ -29,7 +25,7 @@ public abstract class DestinationAddress {
 	public String getAddress() {
 		return mAddress;
 	}
-	
+
 	// Setters
 	/**
 	 * Set the URI or telephone number to dest
@@ -39,5 +35,5 @@ public abstract class DestinationAddress {
 	public void setAddress(String dest) throws InvalidAddressException {
 		mAddress = dest;
 	}
-	
+
 }

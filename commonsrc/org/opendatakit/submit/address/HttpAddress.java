@@ -1,6 +1,5 @@
 package org.opendatakit.submit.address;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.opendatakit.submit.exceptions.InvalidAddressException;
@@ -9,7 +8,6 @@ import org.opendatakit.submit.flags.HttpFlags;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
-import android.webkit.URLUtil;
 
 /**
  * HttpAddress
@@ -36,7 +34,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		//	throw new InvalidAddressException("Invalid URL.");
 		//}
 	}
-	
+
 	/**
 	 * Add a parameter for multi-part Http Requests
 	 * @param param
@@ -45,7 +43,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	public void addHeader(String param, String value) {
 		mParams.put(param, value);
 	}
-	
+
 	/**
 	 * Get the HashMap of all the parans
 	 * for multi-part Http Requests
@@ -54,7 +52,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 	public HashMap<String,String> getHeaders() {
 		return mParams;
 	}
-	
+
 	/**
 	 * HttpAddress constructor from Parcel
 	 * @param in
@@ -64,26 +62,26 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		super();
 		readFromParcel(in);
 	}
-	
+
 	public HttpFlags getHttpFlag() {
 		return mFlag;
 	}
-	
+
 	@Override
 	public String getAddress() {
 		return super.getAddress();
 	}
-	
+
 	@Override
 	public void setAddress(String dest) throws InvalidAddressException {
 		super.setAddress(dest);
 	}
-	
+
 	@Override
 	public int describeContents() {
 		return 0;
 	}
-	
+
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		// HttpAddress Address
@@ -92,11 +90,11 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		dest.writeString(mFlag.toString());
 		dest.writeMap(mParams);
 	}
-	
+
 	public void readFromParcel(Parcel in) {
 		try {
 			// read address and instantiate
-			
+
 			// Read HttpAddress
 			setAddress(in.readString());
 			// Read HttpFlags
@@ -107,7 +105,7 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static final Parcelable.Creator<HttpAddress> CREATOR =
 		    new Parcelable.Creator<HttpAddress>() {
 		        public HttpAddress createFromParcel(Parcel in) {
@@ -124,8 +122,8 @@ public class HttpAddress extends DestinationAddress implements Parcelable {
 		            return new HttpAddress[size];
 		        }
 	};
-	
 
-	
-	
+
+
+
 }

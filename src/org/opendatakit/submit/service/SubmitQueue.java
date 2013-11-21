@@ -1,9 +1,7 @@
 package org.opendatakit.submit.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.opendatakit.submit.data.SubmitObject;
@@ -14,7 +12,7 @@ public class SubmitQueue {
 //	private LinkedList<SubmitObject> mSubmitQueue = null; // Keeps track of all SubmitObjects and keeps them in a FIFO queue
 	private HashMap<String, ArrayList<String>> mAppIdToSubmitIds = null; // Keeps track of all SubmitObjects that belong to a given app. Maps list of SubmitIDs to an AppID.
 	private HashMap<String, SubmitObject> mSubmitIdToSubmitObject = null;
-	
+
 	/**
 	 * Empty constructor
 	 */
@@ -24,27 +22,27 @@ public class SubmitQueue {
 		mAppIdToSubmitIds = new HashMap<String, ArrayList<String>>();
 		mSubmitIdToSubmitObject = new HashMap<String, SubmitObject>();
 	}
-	
+
 //	public LinkedList<SubmitObject> getSubmitObjectQueue() {
 	public ConcurrentLinkedQueue<SubmitObject> getSubmitObjectQueue() {
 		return mSubmitQueue;
 	}
-	
+
 	public int getSubmitQueueSize() {
 		return mSubmitQueue.size();
 	}
-	
+
 //	public LinkedList<SubmitObject> getSubmitQueue() {
 	public ConcurrentLinkedQueue<SubmitObject> getSubmitQueue() {
 		return mSubmitQueue;
 	}
-	
+
 	public boolean onSubmitQueue(String submit_id) {
 		return mSubmitIdToSubmitObject.containsKey(submit_id);
 	}
-	
+
 	public void updateSubmitQueue(SubmitObject submit) {
-		
+
 		for(SubmitObject sub : mSubmitQueue) {
 			if(submit.getSubmitID().equals(sub.getSubmitID())) {
 				removeSubmitObjectFromQueue(sub);
@@ -52,44 +50,44 @@ public class SubmitQueue {
 			}
 		}
 	}
-	
+
 	public SubmitObject getSubmitObjectBySubmitId(String submit_id) {
 		return mSubmitIdToSubmitObject.get(submit_id);
 	}
-	
+
 	public ArrayList<String> getSubmitIdsByAppId(String app_id) {
 		return mAppIdToSubmitIds.get(app_id);
 	}
-	
+
 	public void addSubmitObjectLast(SubmitObject submit) {
 	  mSubmitQueue.add(submit);
 //		mSubmitQueue.addLast(submit);
 		addSubmitIdToAppIdMap(submit);
 		mSubmitIdToSubmitObject.put(submit.getSubmitID(), submit);
 	}
-	
+
 	public SubmitObject popTopSubmitObject() {
 	  SubmitObject top = mSubmitQueue.poll();
 //		SubmitObject top = mSubmitQueue.getFirst();
 		removeSubmitObjectFromQueue(top);
 		return top;
 	}
-	
+
 	public void addSubmitObjectToQueue(SubmitObject submit) {
 		mSubmitQueue.add(submit);
 		addSubmitIdToAppIdMap(submit);
 		mSubmitIdToSubmitObject.put(submit.getSubmitID(), submit);
 	}
-	
+
 	public void removeSubmitObjectFromQueue(SubmitObject submit) {
 		mSubmitQueue.remove(submit);
 		removeSubmitIdFromAppIdMap(submit.getAppID(), submit.getSubmitID());
 	}
-	
+
 	/*
 	 * This second signature for removeSubmitObjectFromQueue is more
 	 * time intensive than the other, however, it allows an Application
-	 * to remove a SubmitObject from the SubmitQueue with only an 
+	 * to remove a SubmitObject from the SubmitQueue with only an
 	 * ApplicationID and SubmitID.
 	 */
 	public void removeSubmitObjectFromQueue(String app_id, String submit_id) {
@@ -113,10 +111,10 @@ public class SubmitQueue {
 		submitids.add(submit.getSubmitID());
 		mAppIdToSubmitIds.put(submit.getAppID(), submitids);
 	}
-	
+
 	/*
 	 * Note that the signature takes an AppId and SubmitId because
-	 * these are two pieces of information an Application can 
+	 * these are two pieces of information an Application can
 	 * provide about a SubmitObject. For the delete() call used in
 	 * the SubmitServiceInterface, we need this functionality.
 	 */
@@ -132,5 +130,5 @@ public class SubmitQueue {
 	 * Generated serialVersionUID
 	 */
 	private static final long serialVersionUID = 2742367162623177899L;
-	
+
 }
