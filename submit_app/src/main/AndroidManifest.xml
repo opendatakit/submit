@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.opendatakit.submit">
+
+    <!-- Wifi Direct -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ODK File System -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- these are defined in org.opendatakit.services -->
+    <uses-permission android:name="org.opendatakit.database.RUN_DATABASE" />
+    <uses-permission android:name="org.opendatakit.sync.RUN_SYNC" />
+
+    <application
+        tools:ignore="GoogleAppIndexingWarning"
+        android:name=".application.Submit"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Opendatakit">
+        <activity
+            android:name=".activities.LauncherActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Opendatakit">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".activities.PeerTransferActivity"
+            android:label="@string/title_activity_peer_transfer"
+            android:parentActivityName=".activities.MainActivity"
+            android:theme="@style/Opendatakit">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.opendatakit.submit.activities.MainActivity" />
+        </activity>
+
+        <!-- TODO: permission -->
+        <service
+            android:name=".service.local.LocalSyncService"
+            android:exported="true"
+            android:process=":localsync" />
+
+        <service
+            android:name=".service.peer.PeerSyncService"
+            android:exported="true"
+            android:process=":peersync" />
+
+        <service
+            android:name=".service.peer.PeerSyncServerService"
+            android:exported="false" />
+    </application>
+</manifest>

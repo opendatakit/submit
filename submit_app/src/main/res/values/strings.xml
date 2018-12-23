@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">ODK Submit</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="nav_menu_finalize">Finalize</string>
+    <string name="nav_menu_find_peers">Find Peers</string>
+    <string name="nav_menu_peer_transfer">Peer Transfer</string>
+    <string name="nav_menu_preferences">Preferences</string>
+    <string name="nav_menu_peer_sync">Peer Sync</string>
+    <string name="nav_menu_about">About</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_green_peer_sync">GreenPeerSyncActivity</string>
+    <string name="resolve_table_list_conflicts">%d Conflict(s)</string>
+    <string name="resolve_row_select">Select</string>
+    <string name="resolve_conflict_selected">Resolved</string>
+    <string name="resolve_conflict_selected_failed">Failed to Resolve</string>
+    <string name="title_activity_peer_transfer">Peer Transfer</string>
+    <string name="peer_list_title">Peers:</string>
+    <string name="database_unavailable">Database Unavailable</string>
+    <string name="no_conflict">All conflicts resolved</string>
+    <string name="resolve_table_local_sync">Sync with Main Database</string>
+    <string name="wifi_direct_unsupported">Your device does not support Wi-Fi Direct</string>
+
+</resources>
