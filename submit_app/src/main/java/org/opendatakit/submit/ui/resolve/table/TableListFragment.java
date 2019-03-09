@@ -29,6 +29,7 @@ import org.opendatakit.logging.WebLogger;
 import org.opendatakit.properties.CommonToolProperties;
 import org.opendatakit.properties.PropertiesSingleton;
 import org.opendatakit.submit.R;
+import org.opendatakit.submit.activities.PeerTransferActivity;
 import org.opendatakit.submit.activities.SubmitBaseActivity;
 import org.opendatakit.submit.service.actions.SyncActions;
 import org.opendatakit.submit.ui.common.AbsBaseFragment;
@@ -57,6 +58,7 @@ public class TableListFragment extends AbsBaseFragment
   private final Handler handler = new Handler();
   private AlertNProgessMsgFragmentMger msgManager;
   private Button localSyncBtn;
+  private Button launchPeerTransferBtn;
   private SyncActions syncAction = SyncActions.IDLE;
   private boolean isBond;
 
@@ -127,6 +129,15 @@ public class TableListFragment extends AbsBaseFragment
 
         localSyncBtn.setVisibility(localSyncVisibility);
         localSyncBtn.setOnClickListener(TableListFragment.this);
+
+        launchPeerTransferBtn = ViewCompat
+                .requireViewById(view, R.id.launch_peer_transfer_btn);
+        launchPeerTransferBtn.setOnClickListener(new View.OnClickListener() {
+          public void onClick(View v) {
+            Intent i = new Intent(getActivity(), PeerTransferActivity.class);
+            startActivity(i);
+          }
+        });
       }
     });
 
@@ -271,11 +282,17 @@ public class TableListFragment extends AbsBaseFragment
     if (localSyncBtn != null) {
       localSyncBtn.setEnabled(false);
     }
+    if (launchPeerTransferBtn != null) {
+      launchPeerTransferBtn.setEnabled(false);
+    }
   }
 
   void enableButtons() {
     if (localSyncBtn != null) {
       localSyncBtn.setEnabled(true);
+    }
+    if (launchPeerTransferBtn != null) {
+      launchPeerTransferBtn.setEnabled(true);
     }
   }
 
@@ -338,6 +355,8 @@ public class TableListFragment extends AbsBaseFragment
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
       msgManager.createAlertDialog("Copy Complete", "The files have been successfully copied", fm, getId());
+      localSyncBtn.setVisibility(View.GONE);
+      launchPeerTransferBtn.setVisibility(View.VISIBLE);
       enableButtons();
       syncAction = SyncActions.IDLE;
     }

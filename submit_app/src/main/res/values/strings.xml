@@ -28,6 +28,7 @@
     <string name="database_unavailable">Database Unavailable</string>
     <string name="no_conflict">No Conflicts found</string>
     <string name="resolve_table_local_sync">Prepare data: Copy database</string>
+    <string name="launch_peer_transfer">Launch Peer Transfer</string>
     <string name="wifi_direct_unsupported">Your device does not support Wi-Fi Direct</string>
 
     <!-- Welcome Fragment -->
