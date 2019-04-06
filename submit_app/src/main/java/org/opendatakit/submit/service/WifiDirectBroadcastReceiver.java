@@ -21,7 +21,6 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager.Channel channel;
     private PeerTransferActivity activity;
 
-    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
 
 
     /**
@@ -60,9 +59,10 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                     Collection<WifiP2pDevice> refreshedPeers = peerList.getDeviceList();
                     Log.i(TAG, "peers available");
                     Log.i(TAG, refreshedPeers.toString());
-                    if (!refreshedPeers.equals(peers)) {
-                        peers.clear();
-                        peers.addAll(refreshedPeers);
+                    if (!refreshedPeers.equals(activity.availablePeers)) {
+                        activity.availablePeers.clear();
+                        activity.availablePeers.addAll(refreshedPeers);
+                        activity.availablePeerAdapter.notifyDataSetChanged();
 
                         // If an AdapterView is backed by this data, notify it
                         // of the change. For instance, if you have a ListView of
@@ -73,7 +73,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                         // peers connected to the Wi-Fi P2P network.
                     }
 
-                    if (peers.size() == 0) {
+                    if (activity.availablePeers.size() == 0) {
                         Log.d(TAG, "No devices found");
                         return;
                     }

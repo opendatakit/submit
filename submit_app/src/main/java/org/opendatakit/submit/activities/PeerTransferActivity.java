@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +25,7 @@ import org.opendatakit.consts.IntentConsts;
 import org.opendatakit.properties.CommonToolProperties;
 import org.opendatakit.properties.PropertiesSingleton;
 import org.opendatakit.submit.R;
+import org.opendatakit.submit.service.AvailablePeerAdapter;
 import org.opendatakit.submit.service.PeerAdapter;
 import org.opendatakit.submit.service.WifiDirectBroadcastReceiver;
 
@@ -55,9 +58,12 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     private WifiDirectBroadcastReceiver mReceiver;
     private IntentFilter mIntentFilter;
     private Map<String, String> androidIdToIp;
-    private PeerAdapter adapter;
+    public AvailablePeerAdapter availablePeerAdapter;
+    private PeerAdapter connectedPeerAdapter;
 
     private PeerSyncServer server;
+
+    public List<WifiP2pDevice> availablePeers = new ArrayList<WifiP2pDevice>();
 
   // this is used for joining table stuff
     private static final String SUFFIX = "_o";
@@ -89,7 +95,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
         mChannel = mManager.initialize(this, getMainLooper(), null);
 
-        adapter = new PeerAdapter(androidIdToIp, this);
+        connectedPeerAdapter = new PeerAdapter(androidIdToIp, this);
         mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, this);
 
         mIntentFilter = new IntentFilter();
@@ -127,11 +133,17 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         });
 
         // setup recycler view
+        availablePeerAdapter = new AvailablePeerAdapter(availablePeers, this);
+        RecyclerView availablePeerListRv = findViewById(R.id.available_peer_list);
+        availablePeerListRv.setLayoutManager(new LinearLayoutManager(this));
+        availablePeerListRv.setAdapter(availablePeerAdapter);
+        availablePeerAdapter.notifyDataSetChanged();
+
         RecyclerView connectedPeerListRv = findViewById(R.id.connected_peer_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         connectedPeerListRv.setLayoutManager(layoutManager);
-        connectedPeerListRv.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+        connectedPeerListRv.setAdapter(connectedPeerAdapter);
+        connectedPeerAdapter.notifyDataSetChanged();
 
         bindToPeerSyncServerService();
 
@@ -258,7 +270,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                adapter.notifyDataSetChanged();
+                connectedPeerAdapter.notifyDataSetChanged();
             }
         });
 
@@ -312,9 +324,28 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
     }
 
+    public void connectDevice(WifiP2pDevice device) {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                Log.i(TAG, "connected device success");
+                //success logic
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.i(TAG, "connected device failure");
+                //failure logic
+            }
+        });
+    }
+
   @Override
   public void databaseAvailable() {}
 
-  @Override
+
   public void databaseUnavailable() {}
 }
