@@ -103,6 +103,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 //                LocalBroadcastManager.getInstance(PeerTransferActivity.this).registerReceiver(mReceiver, mIntentFilter);
+                // TODO is it ok to call registerReceiver multiple times?
                 registerReceiver(mReceiver, mIntentFilter);
                 receiverIsRegistered = true;
                 if (mManager != null) {
@@ -126,10 +127,10 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         });
 
         // setup recycler view
-        RecyclerView peerListRv = findViewById(R.id.peer_list);
+        RecyclerView connectedPeerListRv = findViewById(R.id.connected_peer_list);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        peerListRv.setLayoutManager(layoutManager);
-        peerListRv.setAdapter(adapter);
+        connectedPeerListRv.setLayoutManager(layoutManager);
+        connectedPeerListRv.setAdapter(adapter);
         adapter.notifyDataSetChanged();
 
         bindToPeerSyncServerService();

@@ -6,7 +6,11 @@ import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.util.Log;
+import java.util.List;
+import java.util.Collection;
+import java.util.ArrayList;
 
 import org.opendatakit.submit.activities.PeerTransferActivity;
 
@@ -16,6 +20,9 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private PeerTransferActivity activity;
+
+    private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
+
 
     /**
      * @param manager WifiP2pManager system service
@@ -49,8 +56,27 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             manager.requestPeers(channel, new WifiP2pManager.PeerListListener() {
 
                 @Override
-                public void onPeersAvailable(WifiP2pDeviceList peers) {
-                    // nothing to do here
+                public void onPeersAvailable(WifiP2pDeviceList peerList) {
+                    Collection<WifiP2pDevice> refreshedPeers = peerList.getDeviceList();
+                    Log.i(TAG, "peers available");
+                    Log.i(TAG, refreshedPeers.toString());
+                    if (!refreshedPeers.equals(peers)) {
+                        peers.clear();
+                        peers.addAll(refreshedPeers);
+
+                        // If an AdapterView is backed by this data, notify it
+                        // of the change. For instance, if you have a ListView of
+                        // available peers, trigger an update.
+                        //((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
+
+                        // Perform any other updates needed based on the new list of
+                        // peers connected to the Wi-Fi P2P network.
+                    }
+
+                    if (peers.size() == 0) {
+                        Log.d(TAG, "No devices found");
+                        return;
+                    }
                 }
             });
 

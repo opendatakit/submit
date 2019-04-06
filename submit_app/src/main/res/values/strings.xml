@@ -24,7 +24,8 @@
     <string name="resolve_conflict_selected">Resolved</string>
     <string name="resolve_conflict_selected_failed">Failed to Resolve</string>
     <string name="title_activity_peer_transfer">Peer Transfer</string>
-    <string name="peer_list_title">Peers:</string>
+    <string name="available_peer_list_title">Available Peers:</string>
+    <string name="connected_peer_list_title">Connected Peers:</string>
     <string name="database_unavailable">Database Unavailable</string>
     <string name="no_conflict">No Conflicts found</string>
     <string name="resolve_table_local_sync">Prepare data: Copy database</string>
