@@ -7,74 +7,13 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="org.opendatakit.submit.activities.PeerTransferActivity"
-    tools:layout_editor_absoluteY="129dp"
-    tools:showIn="@layout/activity_peer_transfer">
-
-    <Button
-        android:id="@+id/find_peers"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
-        android:text="@string/nav_menu_find_peers"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/peer_list"
-        app:layout_constraintVertical_bias="0.75" />
-
-    <TextView
-        android:id="@+id/available_peer_list_header"
-        android:layout_width="200dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/available_peer_list_title"
-        android:textAlignment="center"
-        android:textColor="#000"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/your_id" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/available_peer_list"
-        android:layout_width="372dp"
-        android:layout_height="331dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/find_peers"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/available_peer_list_header"
-        tools:listitem="@layout/recycler_peer_list" />
-
-    <TextView
-        android:id="@+id/connected_peer_list_header"
-        android:layout_width="200dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/connected_peer_list_title"
-        android:textAlignment="center"
-        android:textColor="#000"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/available_peer_list" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/connected_peer_list"
-        android:layout_width="372dp"
-        android:layout_height="331dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/find_peers"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/connected_peer_list_header"
-        tools:listitem="@layout/recycler_peer_list" />
+    tools:showIn="@layout/activity_peer_transfer"
+    android:fillViewport="true">
 
     <TextView
         android:id="@+id/your_id_prompt"
         android:layout_width="wrap_content"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="Your ID:"
@@ -84,7 +23,7 @@
     <TextView
         android:id="@+id/your_id"
         android:layout_width="wrap_content"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:text="TextView"
@@ -100,5 +39,78 @@
         app:layout_constraintBaseline_toBaselineOf="@+id/your_id"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/your_id" />
+
+    <TextView
+        android:id="@+id/available_peer_list_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/available_peer_list_title"
+        android:textAlignment="center"
+        android:textColor="#000"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/your_id" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/available_peer_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/available_peer_list_header">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/available_peer_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/find_peers"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:listitem="@layout/recycler_peer_list" />
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <TextView
+        android:id="@+id/connected_peer_list_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connected_peer_list_title"
+        android:textAlignment="center"
+        android:textColor="#000"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/available_peer_scroll" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/connected_peer_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/connected_peer_list_header">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/connected_peer_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/find_peers"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:listitem="@layout/recycler_peer_list" />
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <Button
+        android:id="@+id/find_peers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nav_menu_find_peers"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
 
 </android.support.constraint.ConstraintLayout>
