@@ -15,6 +15,7 @@
     <string name="nav_menu_preferences">Preferences</string>
     <string name="nav_menu_peer_sync">Peer Sync</string>
     <string name="nav_menu_about">About</string>
+    <string name="nav_menu_sync_complete">Sync Complete</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -28,7 +29,8 @@
     <string name="connected_peer_list_title">Connected Peers:</string>
     <string name="database_unavailable">Database Unavailable</string>
     <string name="no_conflict">No Conflicts found</string>
-    <string name="resolve_table_local_sync">Prepare data: Copy database</string>
+    <string name="resolve_table_local_sync">Prepare: Copy staging database</string>
+    <string name="final_local_sync">Complete: Copy staging database</string>
     <string name="launch_peer_transfer">Launch Peer Transfer</string>
     <string name="wifi_direct_unsupported">Your device does not support Wi-Fi Direct</string>
 

@@ -63,6 +63,7 @@
             android:id="@+id/available_peer_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="150dp"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="16dp"
             app:layout_constraintBottom_toTopOf="@+id/find_peers"
@@ -95,6 +96,7 @@
             android:id="@+id/connected_peer_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="150dp"
             app:layout_constraintBottom_toTopOf="@+id/find_peers"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -109,8 +111,18 @@
         android:layout_height="wrap_content"
         android:text="@string/nav_menu_find_peers"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/sync_complete"
+        />
+
+    <Button
+        android:id="@+id/sync_complete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nav_menu_sync_complete"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/find_peers"
+        app:layout_constraintEnd_toEndOf="parent"
         />
 
 </android.support.constraint.ConstraintLayout>

@@ -29,6 +29,7 @@ import org.opendatakit.logging.WebLogger;
 import org.opendatakit.properties.CommonToolProperties;
 import org.opendatakit.properties.PropertiesSingleton;
 import org.opendatakit.submit.R;
+import org.opendatakit.submit.activities.MainActivity;
 import org.opendatakit.submit.activities.PeerTransferActivity;
 import org.opendatakit.submit.activities.SubmitBaseActivity;
 import org.opendatakit.submit.service.actions.SyncActions;
@@ -104,6 +105,8 @@ public class TableListFragment extends AbsBaseFragment
   public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
+    final MainActivity activity = (MainActivity) getActivity();
+
     configRecyclerView(ViewCompat.<RecyclerView>requireViewById(view, R.id.resolve_table_list));
 
     viewModel.getTables().observe(getViewLifecycleOwner(), new Observer<List<ConflictingTable>>() {
@@ -126,6 +129,9 @@ public class TableListFragment extends AbsBaseFragment
 
         localSyncBtn = ViewCompat
             .requireViewById(view, R.id.resolve_table_local_btn);
+        if (activity.finalCopy) {
+          localSyncBtn.setText(R.string.final_local_sync);
+        }
 
         localSyncBtn.setVisibility(localSyncVisibility);
         localSyncBtn.setOnClickListener(TableListFragment.this);
@@ -135,6 +141,7 @@ public class TableListFragment extends AbsBaseFragment
         launchPeerTransferBtn.setOnClickListener(new View.OnClickListener() {
           public void onClick(View v) {
             Intent i = new Intent(getActivity(), PeerTransferActivity.class);
+            i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
             startActivity(i);
           }
         });
@@ -308,6 +315,7 @@ public class TableListFragment extends AbsBaseFragment
       return;
     }
 
+    final MainActivity activity = (MainActivity) getActivity();
     final SyncStatus status;
     final SyncProgressEvent event;
     try {
@@ -368,9 +376,38 @@ public class TableListFragment extends AbsBaseFragment
 
       msgManager.createAlertDialog("Copy Complete", "The files have been successfully copied", fm, getId());
       localSyncBtn.setVisibility(View.GONE);
-      launchPeerTransferBtn.setVisibility(View.VISIBLE);
+      if (!activity.finalCopy) {
+        launchPeerTransferBtn.setVisibility(View.VISIBLE);
+      } else {
+        activity.finish();
+      }
       enableButtons();
       syncAction = SyncActions.IDLE;
+    } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.AUTHENTICATION_ERROR || status == SyncStatus.DEVICE_ERROR ||
+        status == SyncStatus.APPNAME_NOT_SUPPORTED_BY_SERVER || status == SyncStatus.NETWORK_TRANSPORT_ERROR
+        || status == SyncStatus.REQUEST_OR_PROTOCOL_ERROR || status == SyncStatus.RESYNC_BECAUSE_CONFIG_HAS_BEEN_RESET_ERROR
+        || status == SyncStatus.SERVER_INTERNAL_ERROR || status == SyncStatus.SERVER_IS_NOT_ODK_SERVER ||
+        status == SyncStatus.SERVER_MISSING_CONFIG_FILES )) {
+
+      FragmentManager fm =  getFragmentManager();
+      msgManager.clearDialogsAndRetainCurrentState(fm);
+      fm.executePendingTransactions();
+
+      try {
+        syncInterface.clearAppSynchronizer(SubmitUtil.getSecondaryAppName(getAppName()));
+      } catch (RemoteException e) {
+        // TODO: How can we handle this error? Can we recover?
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[" + getId() + "] [monitorProgress] Remote exception");
+        e.printStackTrace();
+        resetDialogAndStateMachine();
+        msgManager.createAlertDialog("Copy Error", "An error occurred with the copy", fm, getId());
+        return;
+      }
+
+      msgManager.createAlertDialog("Copy Error", "An error occurred with the copy", fm, getId());
+      enableButtons();
+      syncAction = SyncActions.IDLE;
+
     }
 
   }

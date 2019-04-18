@@ -1,7 +1,9 @@
 package org.opendatakit.submit.activities;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -14,6 +16,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -93,6 +96,8 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        final PeerTransferActivity activity = this;
+
         androidIdToIp = new TreeMap<>();
         receiverIsRegistered = false;
         clientSocketsToClose = new ArrayList<>();
@@ -107,10 +112,10 @@ public class PeerTransferActivity extends SubmitBaseActivity {
           return;
         }
 
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mChannel = mManager.initialize(activity, getMainLooper(), null);
 
-        connectedPeerAdapter = new PeerAdapter(androidIdToIp, this);
-        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, this);
+        connectedPeerAdapter = new PeerAdapter(androidIdToIp, activity);
+        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -119,8 +124,8 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         // setup button
-        final Button button = findViewById(R.id.find_peers);
-        button.setOnClickListener(new View.OnClickListener() {
+        final Button findPeersButton = findViewById(R.id.find_peers);
+        findPeersButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 //                LocalBroadcastManager.getInstance(PeerTransferActivity.this).registerReceiver(mReceiver, mIntentFilter);
                 // TODO is it ok to call registerReceiver multiple times?
@@ -146,15 +151,25 @@ public class PeerTransferActivity extends SubmitBaseActivity {
             }
         });
 
+        final Button syncCompleteButton = findViewById(R.id.sync_complete);
+        syncCompleteButton.setOnClickListener(new View.OnClickListener() {
+          public void onClick(View v) {
+            Intent i = new Intent(activity, MainActivity.class);
+            i.putExtra(MainActivity.FRAGMENT_TO_NAV_LABEL, MainActivity.TABLE_LIST_FRAGMENT_TO_NAV);
+            i.putExtra(MainActivity.FINAL_COPY_LABEL, true);
+            i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(i);
+        }});
+
         // setup recycler view
-        availablePeerAdapter = new AvailablePeerAdapter(availablePeers, this);
+        availablePeerAdapter = new AvailablePeerAdapter(availablePeers, activity);
         RecyclerView availablePeerListRv = findViewById(R.id.available_peer_list);
-        availablePeerListRv.setLayoutManager(new LinearLayoutManager(this));
+        availablePeerListRv.setLayoutManager(new LinearLayoutManager(activity));
         availablePeerListRv.setAdapter(availablePeerAdapter);
         availablePeerAdapter.notifyDataSetChanged();
 
         RecyclerView connectedPeerListRv = findViewById(R.id.connected_peer_list);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         connectedPeerListRv.setLayoutManager(layoutManager);
         connectedPeerListRv.setAdapter(connectedPeerAdapter);
         connectedPeerAdapter.notifyDataSetChanged();
@@ -163,7 +178,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
         // display device id
         TextView yourId = findViewById(R.id.your_id);
-        yourId.setText(PeerSyncUtil.getAndroidId(this));
+        yourId.setText(PeerSyncUtil.getAndroidId(activity));
 
         if (savedInstanceState != null) {
             msgManager = AlertNProgessMsgFragmentMger
@@ -199,7 +214,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
                 CommonToolProperties.KEY_SYNC_SERVER_URL,
                 IntentConsts.SubmitPeerSync.URI_SCHEME + androidIdToIp.get(androidId) + ":8080/" + secondaryAppName
         ));
-        Log.e(TAG, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + IntentConsts.SubmitPeerSync.URI_SCHEME + androidIdToIp.get(androidId) + ":8080/" + secondaryAppName);
         propertiesSingleton.setProperties(Collections.singletonMap(
                 CommonToolProperties.KEY_FIRST_LAUNCH,
                 Boolean.toString(false)
@@ -322,6 +336,8 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     }
 
   private void monitorProgress() {
+    final Activity activity = this;
+
     if (!msgManager.hasDialogBeenCreated()) {
       // We are in transition. Wait and try again
       handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
@@ -356,20 +372,20 @@ public class PeerTransferActivity extends SubmitBaseActivity {
       String message;
       switch (progress) {
         case APP_FILES:
-          message = "Copying app files";
+          message = "Syncing app files";
           break;
         case TABLE_FILES:
-          message = "Copying table files";
+          message = "Syncing table files";
           break;
         case ROWS:
-          message = "Copying row data";
+          message = "Syncing row data";
           break;
         default:
-          message = "Copying files";
+          message = "Syncing files";
       }
 
       FragmentManager fm =  getSupportFragmentManager();
-      msgManager.createProgressDialog("Copying", message, fm);
+      msgManager.createProgressDialog("Syncing", message, fm);
       fm.executePendingTransactions();
       msgManager.updateProgressDialogMessage(message, event.curProgressBar, event.maxProgressBar, fm);
 
@@ -378,8 +394,66 @@ public class PeerTransferActivity extends SubmitBaseActivity {
       FragmentManager fm =  getSupportFragmentManager();
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
-      // TODO: Needs a fragment id
-      //msgManager.createAlertDialog("Sync Complete", "The files have been successfully synced", fm);
+
+      try {
+        syncInterface.clearAppSynchronizer(SubmitUtil.getSecondaryAppName(getAppName()));
+      } catch (RemoteException e) {
+        // TODO: How can we handle this error? Can we recover?
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[monitorProgress] Remote exception");
+        e.printStackTrace();
+        resetDialogAndStateMachine();
+        new AlertDialog.Builder(activity)
+            .setTitle("Sync Error")
+            .setMessage("An error occurred with the sync")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+            });
+        return;
+      }
+      syncAction = SyncActions.IDLE;
+
+      new AlertDialog.Builder(activity)
+          .setTitle("Sync Complete")
+          .setMessage("The files have been successfully synced")
+          .setIcon(android.R.drawable.ic_dialog_alert)
+          .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              Intent i = new Intent(activity, MainActivity.class);
+              i.putExtra(MainActivity.FRAGMENT_TO_NAV_LABEL, MainActivity.TABLE_LIST_FRAGMENT_TO_NAV);
+              i.putExtra(MainActivity.FINAL_COPY_LABEL, true);
+              i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+              startActivity(i);
+            }});
+
+    } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.AUTHENTICATION_ERROR || status == SyncStatus.DEVICE_ERROR ||
+        status == SyncStatus.APPNAME_NOT_SUPPORTED_BY_SERVER || status == SyncStatus.NETWORK_TRANSPORT_ERROR
+        || status == SyncStatus.REQUEST_OR_PROTOCOL_ERROR || status == SyncStatus.RESYNC_BECAUSE_CONFIG_HAS_BEEN_RESET_ERROR
+        || status == SyncStatus.SERVER_INTERNAL_ERROR || status == SyncStatus.SERVER_IS_NOT_ODK_SERVER ||
+        status == SyncStatus.SERVER_MISSING_CONFIG_FILES )) {
+
+      FragmentManager fm =  getSupportFragmentManager();
+      msgManager.clearDialogsAndRetainCurrentState(fm);
+      fm.executePendingTransactions();
+
+      try {
+        syncInterface.clearAppSynchronizer(SubmitUtil.getSecondaryAppName(getAppName()));
+      } catch (RemoteException e) {
+        // TODO: How can we handle this error? Can we recover?
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[monitorProgress] Remote exception");
+        e.printStackTrace();
+        resetDialogAndStateMachine();
+        new AlertDialog.Builder(activity)
+            .setTitle("Sync Error")
+            .setMessage("An error occurred with the sync")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+            });
+        return;
+      }
       syncAction = SyncActions.IDLE;
     }
 
@@ -442,7 +516,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
      * when activity stops, close all sockets
      */
     public void onStop() {
-        super.onStop();
         for (Socket socket : clientSocketsToClose) {
             try {
                 socket.close();
@@ -457,7 +530,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
                 e.printStackTrace();
             }
         }
-
+      super.onStop();
     }
 
     public void connectDevice(WifiP2pDevice device) {

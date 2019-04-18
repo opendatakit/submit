@@ -22,6 +22,9 @@ public class MainActivity extends SubmitBaseActivity {
   private static final String TAG = MainActivity.class.getSimpleName();
 
   public static final int PEER_SYNC_ACTIVITY_CODE = 1;
+  public static final String FRAGMENT_TO_NAV_LABEL = "fragment";
+  public static final String TABLE_LIST_FRAGMENT_TO_NAV = "tableListFragment";
+  public static final String FINAL_COPY_LABEL = "finalCopy";
 
   public enum ScreenType {
     WELCOME_SCREEN,
@@ -33,8 +36,7 @@ public class MainActivity extends SubmitBaseActivity {
    * The active screen -- retained state
    */
   ScreenType activeScreenType = ScreenType.WELCOME_SCREEN;
-
-
+  public boolean finalCopy = false;
 
   /**
    * used to determine whether we need to change the menu (action bar)
@@ -48,6 +50,18 @@ public class MainActivity extends SubmitBaseActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    Bundle extras = getIntent().getExtras();
+    String fragmentToNav = null;
+    if (extras != null) {
+      if (extras.containsKey(FRAGMENT_TO_NAV_LABEL)) {
+        fragmentToNav = extras.getString(FRAGMENT_TO_NAV_LABEL);
+      }
+
+      if (extras.containsKey(FINAL_COPY_LABEL)) {
+        finalCopy = extras.getBoolean(FINAL_COPY_LABEL);
+      }
+    }
+
     setContentView(R.layout.activity_main);
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
@@ -58,7 +72,9 @@ public class MainActivity extends SubmitBaseActivity {
         Snackbar.LENGTH_INDEFINITE
     );
 
-    if (savedInstanceState == null) {
+    if (fragmentToNav != null && fragmentToNav.equals(TABLE_LIST_FRAGMENT_TO_NAV)) {
+      startTableListFrag(null);
+    } else if (savedInstanceState == null) {
       getSupportFragmentManager()
           .beginTransaction()
           .setTransition(FragmentTransaction.TRANSIT_NONE)
