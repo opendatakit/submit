@@ -238,6 +238,7 @@ public class TableListFragment extends AbsBaseFragment
             @Override
             public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
           });
+      return;
     }
 
     final String appName = SubmitUtil.getSecondaryAppName(getAppName());

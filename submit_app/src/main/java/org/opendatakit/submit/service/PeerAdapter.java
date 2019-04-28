@@ -1,5 +1,7 @@
 package org.opendatakit.submit.service;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,7 +66,20 @@ public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
         holder.mRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                activity.bindToSyncService(device);
+
+                if (!activity.databaseAvailable) {
+                    new AlertDialog.Builder(activity)
+                        .setTitle("Database Unavailable")
+                        .setMessage("The ODK Database is unavailable. Please wait and try again")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+                        });
+
+                } else {
+                    activity.bindToSyncService(device);
+                }
             }
         });
     }

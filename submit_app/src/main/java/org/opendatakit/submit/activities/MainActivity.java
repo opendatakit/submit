@@ -124,7 +124,9 @@ public class MainActivity extends SubmitBaseActivity {
   @Override
   public void databaseUnavailable() {
     databaseAvailable = false;
-    dbUnavailableSnackbar.show();
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.show();
+    }
   }
 
 

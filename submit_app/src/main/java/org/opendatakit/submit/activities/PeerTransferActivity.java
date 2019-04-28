@@ -77,6 +77,8 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     private final Handler handler = new Handler();
     private AlertNProgessMsgFragmentMger msgManager;
     private SyncActions syncAction = SyncActions.IDLE;
+    private Snackbar dbUnavailableSnackbar;
+    public boolean databaseAvailable = false;
 
   // this is used for joining table stuff
     private static final String SUFFIX = "_o";
@@ -97,6 +99,12 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         final PeerTransferActivity activity = this;
+
+        dbUnavailableSnackbar = Snackbar.make(
+            findViewById(R.id.peer_transfer_content),
+            R.string.database_unavailable,
+            Snackbar.LENGTH_INDEFINITE
+        );
 
         androidIdToIp = new TreeMap<>();
         receiverIsRegistered = false;
@@ -493,6 +501,16 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         }, 100);
     }
 
+  @Override
+  protected void onPostResume() {
+    super.onPostResume();
+
+    if (getDatabase() == null) {
+      databaseAvailable = false;
+      dbUnavailableSnackbar.show();
+    }
+  }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -552,8 +570,18 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     }
 
   @Override
-  public void databaseAvailable() {}
+  public void databaseAvailable() {
+    databaseAvailable = true;
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.dismiss();
+    }
+  }
 
-
-  public void databaseUnavailable() {}
+  @Override
+  public void databaseUnavailable() {
+    databaseAvailable = false;
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.show();
+    }
+  }
 }
