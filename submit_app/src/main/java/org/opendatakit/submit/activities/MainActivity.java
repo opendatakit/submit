@@ -45,6 +45,7 @@ public class MainActivity extends SubmitBaseActivity {
   private ScreenType lastMenuType = null;
 
   private Snackbar dbUnavailableSnackbar;
+  public boolean databaseAvailable = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,7 @@ public class MainActivity extends SubmitBaseActivity {
     super.onPostResume();
 
     if (getDatabase() == null) {
+      databaseAvailable = false;
       dbUnavailableSnackbar.show();
     }
   }
@@ -113,6 +115,7 @@ public class MainActivity extends SubmitBaseActivity {
 
   @Override
   public void databaseAvailable() {
+    databaseAvailable = true;
     if (dbUnavailableSnackbar != null) {
       dbUnavailableSnackbar.dismiss();
     }
@@ -120,6 +123,7 @@ public class MainActivity extends SubmitBaseActivity {
 
   @Override
   public void databaseUnavailable() {
+    databaseAvailable = false;
     dbUnavailableSnackbar.show();
   }
 

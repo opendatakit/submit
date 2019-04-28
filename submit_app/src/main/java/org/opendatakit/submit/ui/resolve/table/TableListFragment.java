@@ -1,9 +1,11 @@
 package org.opendatakit.submit.ui.resolve.table;
 
+import android.app.AlertDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -223,6 +225,19 @@ public class TableListFragment extends AbsBaseFragment
   public void onClick(View v) {
     if (v.getId() != R.id.resolve_table_local_btn) {
       return;
+    }
+
+    MainActivity activity = (MainActivity) getActivity();
+
+    if (!activity.databaseAvailable) {
+      new AlertDialog.Builder(activity)
+          .setTitle("Database Unavailable")
+          .setMessage("The ODK Database is unavailable. Please wait and try again")
+          .setIcon(android.R.drawable.ic_dialog_alert)
+          .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+          });
     }
 
     final String appName = SubmitUtil.getSecondaryAppName(getAppName());
