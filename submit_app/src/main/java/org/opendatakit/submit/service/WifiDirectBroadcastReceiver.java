@@ -87,6 +87,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             Log.i(TAG, "connection changed");
 
             if (manager == null) {
+                Log.e(TAG, "Cannot connect because manager is null");
                 return;
             }
 

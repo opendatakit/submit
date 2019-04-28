@@ -115,22 +115,21 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         mChannel = mManager.initialize(activity, getMainLooper(), null);
 
         connectedPeerAdapter = new PeerAdapter(androidIdToIp, activity);
-        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
+        registerReceiver(mReceiver, mIntentFilter);
 
         // setup button
         final Button findPeersButton = findViewById(R.id.find_peers);
         findPeersButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 //                LocalBroadcastManager.getInstance(PeerTransferActivity.this).registerReceiver(mReceiver, mIntentFilter);
-                // TODO is it ok to call registerReceiver multiple times?
-                registerReceiver(mReceiver, mIntentFilter);
-                receiverIsRegistered = true;
+
                 if (mManager != null) {
                     mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
                         @Override
@@ -469,14 +468,11 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     protected void onPause() {
         super.onPause();
         msgManager.clearDialogsAndRetainCurrentState(getSupportFragmentManager());
-        if (receiverIsRegistered) {
-            try {
-                unregisterReceiver(mReceiver);
-            } catch (IllegalArgumentException e) {
-                // ignore
-                // somehow not registered
-            }
-            receiverIsRegistered = false;
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            // ignore
+            // somehow not registered
         }
     }
 
@@ -485,6 +481,9 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         super.onResume();
 
         WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).i(TAG, "[onResume]");
+
+        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, this);
+        registerReceiver(mReceiver, mIntentFilter);
 
         handler.postDelayed(new Runnable() {
             @Override
