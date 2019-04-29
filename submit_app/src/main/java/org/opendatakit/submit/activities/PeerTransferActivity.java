@@ -62,7 +62,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     private List<Socket> clientSocketsToClose;
     private List<ServerSocket> serverSocketsToClose;
 
-    private boolean receiverIsRegistered;
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private WifiDirectBroadcastReceiver mReceiver;
@@ -73,7 +72,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
     private PeerSyncServer server;
 
-    public List<WifiP2pDevice> availablePeers = new ArrayList<WifiP2pDevice>();
+    public List<WifiP2pDevice> availablePeers = new ArrayList<>();
     private final Handler handler = new Handler();
     private AlertNProgessMsgFragmentMger msgManager;
     private SyncActions syncAction = SyncActions.IDLE;
@@ -107,7 +106,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         );
 
         androidIdToIp = new TreeMap<>();
-        receiverIsRegistered = false;
         clientSocketsToClose = new ArrayList<>();
         serverSocketsToClose = new ArrayList<>();
 

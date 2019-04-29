@@ -116,7 +116,6 @@ public class DeviceInteraction implements ConnectionInfoListener {
                     }
                 });
 
-
                 Socket socket = new Socket();
                 socket.bind(null);
                 InetSocketAddress groupOwnerSocketAddress = new InetSocketAddress(
