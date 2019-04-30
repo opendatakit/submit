@@ -67,17 +67,7 @@ public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
             @Override
             public void onClick(View view) {
 
-                if (!activity.databaseAvailable) {
-                    new AlertDialog.Builder(activity)
-                        .setTitle("Database Unavailable")
-                        .setMessage("The ODK Database is unavailable. Please wait and try again")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
-                        });
-
-                } else {
+                if (activity.databaseAvailable) {
                     activity.bindToSyncService(device);
                 }
             }

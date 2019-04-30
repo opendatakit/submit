@@ -138,7 +138,7 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
               mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
               registerReceiver(mReceiver, mIntentFilter);
-              
+
                 if (mManager != null) {
                     mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
                         @Override
