@@ -136,6 +136,9 @@ public class PeerTransferActivity extends SubmitBaseActivity {
             public void onClick(View v) {
 //                LocalBroadcastManager.getInstance(PeerTransferActivity.this).registerReceiver(mReceiver, mIntentFilter);
 
+              mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
+              registerReceiver(mReceiver, mIntentFilter);
+              
                 if (mManager != null) {
                     mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
                         @Override
