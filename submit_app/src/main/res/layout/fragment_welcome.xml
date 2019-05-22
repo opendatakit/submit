@@ -9,26 +9,26 @@
 
     <TextView
         android:id="@+id/welcome_message"
-        android:layout_width="240dp"
-        android:layout_height="103dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="ODK Submit Demo"
+        android:text="@string/welcome_text"
         android:textAlignment="center"
         android:textColor="#000"
-        android:textSize="36sp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/welcome_message_1"
-        android:layout_width="240dp"
-        android:layout_height="255dp"
-        android:layout_marginTop="8dp"
-        android:text='click the navbar on the left to get started: "Peer Transfer" will peer2peer sync all data with anonther device, "Finalize" is where you consolidatate that data with the main database on your device.'
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
+    <Button
+        android:id="@+id/ScanButton"
+        style="@style/StandardButton"
+        android:layout_width="match_parent"
+        android:text="@string/launch_prepare_data"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/welcome_message" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/welcome_message"
+        android:onClick="startTableListFrag">
+    </Button>
 
 </android.support.constraint.ConstraintLayout>

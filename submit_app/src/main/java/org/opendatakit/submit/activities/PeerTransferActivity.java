@@ -1,16 +1,22 @@
 package org.opendatakit.submit.activities;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -20,18 +26,25 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.opendatakit.consts.IntentConsts;
+import org.opendatakit.fragment.AlertNProgessMsgFragmentMger;
+import org.opendatakit.logging.WebLogger;
 import org.opendatakit.properties.CommonToolProperties;
 import org.opendatakit.properties.PropertiesSingleton;
 import org.opendatakit.submit.R;
+import org.opendatakit.submit.service.AvailablePeerAdapter;
 import org.opendatakit.submit.service.PeerAdapter;
 import org.opendatakit.submit.service.WifiDirectBroadcastReceiver;
 
+import org.opendatakit.submit.service.actions.SyncActions;
 import org.opendatakit.submit.service.peer.PeerSyncServerService;
 import org.opendatakit.submit.service.peer.server.PeerSyncServer;
 import org.opendatakit.submit.util.PeerSyncUtil;
 import org.opendatakit.submit.util.SubmitUtil;
 import org.opendatakit.sync.service.IOdkSyncServiceInterface;
 import org.opendatakit.sync.service.SyncAttachmentState;
+import org.opendatakit.sync.service.SyncProgressEvent;
+import org.opendatakit.sync.service.SyncProgressState;
+import org.opendatakit.sync.service.SyncStatus;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -49,20 +62,31 @@ public class PeerTransferActivity extends SubmitBaseActivity {
     private List<Socket> clientSocketsToClose;
     private List<ServerSocket> serverSocketsToClose;
 
-    private boolean receiverIsRegistered;
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private WifiDirectBroadcastReceiver mReceiver;
     private IntentFilter mIntentFilter;
     private Map<String, String> androidIdToIp;
-    private PeerAdapter adapter;
+    public AvailablePeerAdapter availablePeerAdapter;
+    private PeerAdapter connectedPeerAdapter;
 
     private PeerSyncServer server;
+
+    public List<WifiP2pDevice> availablePeers = new ArrayList<>();
+    private final Handler handler = new Handler();
+    private AlertNProgessMsgFragmentMger msgManager;
+    private SyncActions syncAction = SyncActions.IDLE;
+    private Snackbar dbUnavailableSnackbar;
+    public boolean databaseAvailable = false;
 
   // this is used for joining table stuff
     private static final String SUFFIX = "_o";
     // tag for logging
     private static final String TAG = "PeerTransferActivity";
+    private String alertDialogTag = TAG + "AlertDialog";
+    private String progressDialogTag = TAG + "ProgressDialog";
+
+    IOdkSyncServiceInterface syncInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +97,15 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        final PeerTransferActivity activity = this;
+
+        dbUnavailableSnackbar = Snackbar.make(
+            findViewById(R.id.peer_transfer_content),
+            R.string.database_unavailable,
+            Snackbar.LENGTH_INDEFINITE
+        );
+
         androidIdToIp = new TreeMap<>();
-        receiverIsRegistered = false;
         clientSocketsToClose = new ArrayList<>();
         serverSocketsToClose = new ArrayList<>();
 
@@ -87,24 +118,27 @@ public class PeerTransferActivity extends SubmitBaseActivity {
           return;
         }
 
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mChannel = mManager.initialize(activity, getMainLooper(), null);
 
-        adapter = new PeerAdapter(androidIdToIp, this);
-        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, this);
+        connectedPeerAdapter = new PeerAdapter(androidIdToIp, activity);
 
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
+        registerReceiver(mReceiver, mIntentFilter);
 
         // setup button
-        final Button button = findViewById(R.id.find_peers);
-        button.setOnClickListener(new View.OnClickListener() {
+        final Button findPeersButton = findViewById(R.id.find_peers);
+        findPeersButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 //                LocalBroadcastManager.getInstance(PeerTransferActivity.this).registerReceiver(mReceiver, mIntentFilter);
-                registerReceiver(mReceiver, mIntentFilter);
-                receiverIsRegistered = true;
+
+              mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, activity);
+              registerReceiver(mReceiver, mIntentFilter);
+
                 if (mManager != null) {
                     mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
                         @Override
@@ -125,18 +159,54 @@ public class PeerTransferActivity extends SubmitBaseActivity {
             }
         });
 
+        final Button syncCompleteButton = findViewById(R.id.sync_complete);
+        syncCompleteButton.setOnClickListener(new View.OnClickListener() {
+          public void onClick(View v) {
+            Intent i = new Intent(activity, MainActivity.class);
+            i.putExtra(MainActivity.FRAGMENT_TO_NAV_LABEL, MainActivity.TABLE_LIST_FRAGMENT_TO_NAV);
+            i.putExtra(MainActivity.FINAL_COPY_LABEL, true);
+            i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+            startActivity(i);
+        }});
+
         // setup recycler view
-        RecyclerView peerListRv = findViewById(R.id.peer_list);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        peerListRv.setLayoutManager(layoutManager);
-        peerListRv.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+        availablePeerAdapter = new AvailablePeerAdapter(availablePeers, activity);
+        RecyclerView availablePeerListRv = findViewById(R.id.available_peer_list);
+        availablePeerListRv.setLayoutManager(new LinearLayoutManager(activity));
+        availablePeerListRv.setAdapter(availablePeerAdapter);
+        availablePeerAdapter.notifyDataSetChanged();
+
+        RecyclerView connectedPeerListRv = findViewById(R.id.connected_peer_list);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        connectedPeerListRv.setLayoutManager(layoutManager);
+        connectedPeerListRv.setAdapter(connectedPeerAdapter);
+        connectedPeerAdapter.notifyDataSetChanged();
 
         bindToPeerSyncServerService();
 
         // display device id
         TextView yourId = findViewById(R.id.your_id);
-        yourId.setText(PeerSyncUtil.getAndroidId(this));
+        yourId.setText(PeerSyncUtil.getAndroidId(activity));
+
+        if (savedInstanceState != null) {
+            msgManager = AlertNProgessMsgFragmentMger
+                    .restoreInitMessaging(SubmitUtil.getSecondaryAppName(getAppName()), alertDialogTag, progressDialogTag,
+                            savedInstanceState);
+        }
+
+        // if message manager was not created from saved state, create fresh
+        if (msgManager == null) {
+            msgManager = new AlertNProgessMsgFragmentMger(SubmitUtil.getSecondaryAppName(getAppName()), alertDialogTag,
+                    progressDialogTag, false, false);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (msgManager != null) {
+            msgManager.addStateToSaveStateBundle(outState);
+        }
     }
 
     public void bindToSyncService(String androidId) {
@@ -159,23 +229,35 @@ public class PeerTransferActivity extends SubmitBaseActivity {
 
         Intent intent = new Intent()
                 .setClassName(IntentConsts.Sync.APPLICATION_NAME, IntentConsts.Sync.SYNC_SERVICE_CLASS);
+        syncAction = SyncActions.START_SYNC;
 
         this.bindService(intent, new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-              IOdkSyncServiceInterface syncInterface = IOdkSyncServiceInterface.Stub.asInterface(service);
-                try {
-                  fixSubmitStates();
-                    syncInterface.synchronizeWithServer(secondaryAppName, SyncAttachmentState.NONE);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
+          @Override
+          public void onServiceConnected(ComponentName name, IBinder service) {
+            syncInterface = IOdkSyncServiceInterface.Stub.asInterface(service);
+            try {
+              fixSubmitStates();
+              syncInterface.synchronizeWithServer(secondaryAppName, SyncAttachmentState.NONE);
+              syncAction = SyncActions.START_SYNC;
 
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                Log.i(TAG, "services disconnected");
+              handler.post(new Runnable() {
+                @Override
+                public void run() {
+                  // TODO: Put strings in xml
+                  msgManager.createProgressDialog("Transferring", "Initiating data transfer", getSupportFragmentManager());
+                }
+              });
+
+              monitorProgress();
+            } catch (RemoteException e) {
+              e.printStackTrace();
             }
+          }
+
+          @Override
+          public void onServiceDisconnected(ComponentName name) {
+            Log.i(TAG, "services disconnected");
+          }
         }, Context.BIND_AUTO_CREATE | Context.BIND_ADJUST_WITH_ACTIVITY);
     }
 
@@ -187,8 +269,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
           Log.e(TAG, "onServiceConnected: connected to PeerSyncServer");
-
-          // TODO: manage server lifecycle better
 
           server = ((PeerSyncServerService.PeerSyncServerBinder) service).getServer();
         }
@@ -257,25 +337,186 @@ public class PeerTransferActivity extends SubmitBaseActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                adapter.notifyDataSetChanged();
+                connectedPeerAdapter.notifyDataSetChanged();
             }
         });
 
     }
 
+  private void monitorProgress() {
+    final Activity activity = this;
+
+    if (!msgManager.hasDialogBeenCreated()) {
+      // We are in transition. Wait and try again
+      handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
+      return;
+    }
+
+    if (syncInterface == null || syncAction == SyncActions.IDLE) {
+      resetDialogAndStateMachine();
+      return;
+    }
+
+    final SyncStatus status;
+    final SyncProgressEvent event;
+    try {
+      status = syncInterface.getSyncStatus(SubmitUtil.getSecondaryAppName(getAppName()));
+      event = syncInterface.getSyncProgressEvent(SubmitUtil.getSecondaryAppName(getAppName()));
+    } catch (RemoteException e) {
+      // TODO: How can we handle this error? Can we recover?
+      WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[monitorProgress] Remote exception");
+      e.printStackTrace();
+      resetDialogAndStateMachine();
+      return;
+    }
+
+    if (syncAction == SyncActions.START_SYNC && status == SyncStatus.NONE) {
+      handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
+      return;
+    } else if (status == SyncStatus.SYNCING) {
+      syncAction = SyncActions.MONITOR_SYNCING;
+
+      SyncProgressState progress = (event.progressState != null) ? event.progressState : SyncProgressState.INACTIVE;
+      String message;
+      switch (progress) {
+        case APP_FILES:
+          message = "Syncing app files";
+          break;
+        case TABLE_FILES:
+          message = "Syncing table files";
+          break;
+        case ROWS:
+          message = "Syncing row data";
+          break;
+        default:
+          message = "Syncing files";
+      }
+
+      FragmentManager fm =  getSupportFragmentManager();
+      msgManager.createProgressDialog("Syncing", message, fm);
+      fm.executePendingTransactions();
+      msgManager.updateProgressDialogMessage(message, event.curProgressBar, event.maxProgressBar, fm);
+
+      handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
+    } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.SYNC_COMPLETE || status == SyncStatus.NONE)) {
+      FragmentManager fm =  getSupportFragmentManager();
+      msgManager.clearDialogsAndRetainCurrentState(fm);
+      fm.executePendingTransactions();
+
+      try {
+        syncInterface.clearAppSynchronizer(SubmitUtil.getSecondaryAppName(getAppName()));
+      } catch (RemoteException e) {
+        // TODO: How can we handle this error? Can we recover?
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[monitorProgress] Remote exception");
+        e.printStackTrace();
+        resetDialogAndStateMachine();
+        new AlertDialog.Builder(activity)
+            .setTitle("Sync Error")
+            .setMessage("An error occurred with the sync")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+            });
+        return;
+      }
+      syncAction = SyncActions.IDLE;
+
+      new AlertDialog.Builder(activity)
+          .setTitle("Sync Complete")
+          .setMessage("The files have been successfully synced")
+          .setIcon(android.R.drawable.ic_dialog_alert)
+          .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              Intent i = new Intent(activity, MainActivity.class);
+              i.putExtra(MainActivity.FRAGMENT_TO_NAV_LABEL, MainActivity.TABLE_LIST_FRAGMENT_TO_NAV);
+              i.putExtra(MainActivity.FINAL_COPY_LABEL, true);
+              i.setFlags(i.getFlags() | Intent.FLAG_ACTIVITY_NO_HISTORY);
+              startActivity(i);
+            }});
+
+    } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.AUTHENTICATION_ERROR || status == SyncStatus.DEVICE_ERROR ||
+        status == SyncStatus.APPNAME_NOT_SUPPORTED_BY_SERVER || status == SyncStatus.NETWORK_TRANSPORT_ERROR
+        || status == SyncStatus.REQUEST_OR_PROTOCOL_ERROR || status == SyncStatus.RESYNC_BECAUSE_CONFIG_HAS_BEEN_RESET_ERROR
+        || status == SyncStatus.SERVER_INTERNAL_ERROR || status == SyncStatus.SERVER_IS_NOT_ODK_SERVER ||
+        status == SyncStatus.SERVER_MISSING_CONFIG_FILES )) {
+
+      FragmentManager fm =  getSupportFragmentManager();
+      msgManager.clearDialogsAndRetainCurrentState(fm);
+      fm.executePendingTransactions();
+
+      try {
+        syncInterface.clearAppSynchronizer(SubmitUtil.getSecondaryAppName(getAppName()));
+      } catch (RemoteException e) {
+        // TODO: How can we handle this error? Can we recover?
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).d(TAG, "[monitorProgress] Remote exception");
+        e.printStackTrace();
+        resetDialogAndStateMachine();
+        new AlertDialog.Builder(activity)
+            .setTitle("Sync Error")
+            .setMessage("An error occurred with the sync")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) { /* Do nothing */ }
+            });
+        return;
+      }
+      syncAction = SyncActions.IDLE;
+    }
+
+  }
+
+  private void resetDialogAndStateMachine() {
+    msgManager.dismissAlertDialog(getSupportFragmentManager());
+    syncAction = SyncActions.IDLE;
+  }
+
   /* unregister the broadcast receiver */
     @Override
     protected void onPause() {
         super.onPause();
-        if (receiverIsRegistered) {
-            try {
-                unregisterReceiver(mReceiver);
-            } catch (IllegalArgumentException e) {
-                // ignore
-                // somehow not registered
-            }
-            receiverIsRegistered = false;
+        msgManager.clearDialogsAndRetainCurrentState(getSupportFragmentManager());
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            // ignore
+            // somehow not registered
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).i(TAG, "[onResume]");
+
+        mReceiver = new WifiDirectBroadcastReceiver(mManager, mChannel, this);
+        registerReceiver(mReceiver, mIntentFilter);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                monitorProgress();
+            }
+        }, 100);
+    }
+
+  @Override
+  protected void onPostResume() {
+    super.onPostResume();
+
+    if (getDatabase() == null) {
+      databaseAvailable = false;
+      dbUnavailableSnackbar.show();
+    }
+  }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        WebLogger.getLogger(SubmitUtil.getSecondaryAppName(getAppName())).i(TAG, "[onDestroy]");
     }
 
     /**
@@ -293,7 +534,6 @@ public class PeerTransferActivity extends SubmitBaseActivity {
      * when activity stops, close all sockets
      */
     public void onStop() {
-        super.onStop();
         for (Socket socket : clientSocketsToClose) {
             try {
                 socket.close();
@@ -308,12 +548,41 @@ public class PeerTransferActivity extends SubmitBaseActivity {
                 e.printStackTrace();
             }
         }
+      super.onStop();
+    }
 
+    public void connectDevice(WifiP2pDevice device) {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                Log.i(TAG, "connected device success");
+                //success logic
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.i(TAG, "connected device failure");
+                //failure logic
+            }
+        });
     }
 
   @Override
-  public void databaseAvailable() {}
+  public void databaseAvailable() {
+    databaseAvailable = true;
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.dismiss();
+    }
+  }
 
   @Override
-  public void databaseUnavailable() {}
+  public void databaseUnavailable() {
+    databaseAvailable = false;
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.show();
+    }
+  }
 }

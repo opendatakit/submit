@@ -1,8 +1,7 @@
 package org.opendatakit.submit.service;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.support.v7.widget.RecyclerView;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,12 +13,13 @@ import org.opendatakit.submit.R;
 import org.opendatakit.submit.activities.PeerTransferActivity;
 
 import java.util.Map;
+import java.util.List;
 
-public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
-    private static final String TAG = "PeerAdapter";
+public class AvailablePeerAdapter extends RecyclerView.Adapter<AvailablePeerAdapter.ViewHolder> {
+    private static final String TAG = "AvailablePeerAdapter";
 
-    private Map<String, String> androidIdToIp;
     private PeerTransferActivity activity;
+    private List<WifiP2pDevice> availablePeers;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -37,14 +37,14 @@ public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public PeerAdapter(Map<String, String> androidIdToIp, PeerTransferActivity activity) {
-        this.androidIdToIp = androidIdToIp;
+    public AvailablePeerAdapter(List availablePeers, PeerTransferActivity activity) {
+        this.availablePeers = availablePeers;
         this.activity = activity;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public PeerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public AvailablePeerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.recycler_peer_list, parent, false);
@@ -59,17 +59,14 @@ public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         Log.i(TAG, "bind");
-        final String device = androidIdToIp.keySet().toArray(new String[0])[position];
-        holder.mTextView.setText(device);
-        //holder.mTextView.setText("hey look!!!");
+        final WifiP2pDevice device = availablePeers.get(position);
+        holder.mTextView.setText(device.deviceName);
 
         holder.mRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                if (activity.databaseAvailable) {
-                    activity.bindToSyncService(device);
-                }
+                Log.i(TAG, device.deviceName);
+                activity.connectDevice(device);
             }
         });
     }
@@ -77,6 +74,6 @@ public class PeerAdapter extends RecyclerView.Adapter<PeerAdapter.ViewHolder> {
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return androidIdToIp.keySet().size();
+        return availablePeers.size();
     }
 }

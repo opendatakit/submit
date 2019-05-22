@@ -1,47 +1,71 @@
 package org.opendatakit.submit.activities;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import org.opendatakit.consts.IntentConsts;
+import org.opendatakit.fragment.AboutMenuFragment;
+import org.opendatakit.logging.WebLogger;
 import org.opendatakit.submit.R;
-import org.opendatakit.submit.ui.common.NavigationListener;
+import org.opendatakit.submit.ui.resolve.table.TableListFragment;
 import org.opendatakit.submit.ui.welcome.WelcomeFragment;
+import org.opendatakit.submit.util.SubmitUtil;
 
 public class MainActivity extends SubmitBaseActivity {
   private static final String TAG = MainActivity.class.getSimpleName();
 
   public static final int PEER_SYNC_ACTIVITY_CODE = 1;
+  public static final String FRAGMENT_TO_NAV_LABEL = "fragment";
+  public static final String TABLE_LIST_FRAGMENT_TO_NAV = "tableListFragment";
+  public static final String FINAL_COPY_LABEL = "finalCopy";
+
+  public enum ScreenType {
+    WELCOME_SCREEN,
+    ABOUT_SCREEN,
+    SETTINGS_SCREEN,
+  }
+
+  /**
+   * The active screen -- retained state
+   */
+  ScreenType activeScreenType = ScreenType.WELCOME_SCREEN;
+  public boolean finalCopy = false;
+
+  /**
+   * used to determine whether we need to change the menu (action bar)
+   * because of a change in the active fragment.
+   */
+  private ScreenType lastMenuType = null;
 
   private Snackbar dbUnavailableSnackbar;
+  public boolean databaseAvailable = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    Bundle extras = getIntent().getExtras();
+    String fragmentToNav = null;
+    if (extras != null) {
+      if (extras.containsKey(FRAGMENT_TO_NAV_LABEL)) {
+        fragmentToNav = extras.getString(FRAGMENT_TO_NAV_LABEL);
+      }
+
+      if (extras.containsKey(FINAL_COPY_LABEL)) {
+        finalCopy = extras.getBoolean(FINAL_COPY_LABEL);
+      }
+    }
+
     setContentView(R.layout.activity_main);
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-
-    DrawerLayout drawer = findViewById(R.id.drawer_layout);
-    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        this,
-        drawer,
-        toolbar,
-        R.string.navigation_drawer_open,
-        R.string.navigation_drawer_close
-    );
-    drawer.addDrawerListener(toggle);
-    toggle.syncState();
-
-    NavigationView navigationView = findViewById(R.id.nav_view);
-    navigationView.setNavigationItemSelectedListener(new NavigationListener(this));
 
     dbUnavailableSnackbar = Snackbar.make(
         findViewById(R.id.main_content),
@@ -49,7 +73,9 @@ public class MainActivity extends SubmitBaseActivity {
         Snackbar.LENGTH_INDEFINITE
     );
 
-    if (savedInstanceState == null) {
+    if (fragmentToNav != null && fragmentToNav.equals(TABLE_LIST_FRAGMENT_TO_NAV)) {
+      startTableListFrag(null);
+    } else if (savedInstanceState == null) {
       getSupportFragmentManager()
           .beginTransaction()
           .setTransition(FragmentTransaction.TRANSIT_NONE)
@@ -63,17 +89,8 @@ public class MainActivity extends SubmitBaseActivity {
     super.onPostResume();
 
     if (getDatabase() == null) {
+      databaseAvailable = false;
       dbUnavailableSnackbar.show();
-    }
-  }
-
-  @Override
-  public void onBackPressed() {
-    DrawerLayout drawer = findViewById(R.id.drawer_layout);
-    if (drawer.isDrawerOpen(GravityCompat.START)) {
-      drawer.closeDrawer(GravityCompat.START);
-    } else {
-      super.onBackPressed();
     }
   }
 
@@ -98,6 +115,7 @@ public class MainActivity extends SubmitBaseActivity {
 
   @Override
   public void databaseAvailable() {
+    databaseAvailable = true;
     if (dbUnavailableSnackbar != null) {
       dbUnavailableSnackbar.dismiss();
     }
@@ -105,6 +123,84 @@ public class MainActivity extends SubmitBaseActivity {
 
   @Override
   public void databaseUnavailable() {
-    dbUnavailableSnackbar.show();
+    databaseAvailable = false;
+    if (dbUnavailableSnackbar != null) {
+      dbUnavailableSnackbar.show();
+    }
+  }
+
+
+  private void changeOptionsMenu(Menu menu) {
+    MenuInflater menuInflater = this.getMenuInflater();
+
+    if (activeScreenType == ScreenType.WELCOME_SCREEN) {
+      menuInflater.inflate(R.menu.main, menu);
+    }
+    lastMenuType = activeScreenType;
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    changeOptionsMenu(menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onPrepareOptionsMenu(Menu menu) {
+    if (lastMenuType != activeScreenType) {
+      changeOptionsMenu(menu);
+    }
+    return super.onPrepareOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    WebLogger.getLogger(getAppName()).d(TAG, "[onOptionsItemSelected] selecting an item");
+
+    switch (item.getItemId()) {
+      case R.id.menu_about:
+        startAboutMenuFragment();
+        return true;
+      case R.id.menu_preferences:
+        startPrefActivity();
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
+
+
+  public void startTableListFrag(View view) {
+    getSupportFragmentManager()
+        .beginTransaction()
+        .replace(R.id.main_content, new TableListFragment())
+        .addToBackStack(null)
+        .commit();
+  }
+
+  private void startPrefActivity() {
+    Intent i = new Intent()
+        .setComponent(new ComponentName(
+            IntentConsts.AppProperties.APPLICATION_NAME,
+            IntentConsts.AppProperties.ACTIVITY_NAME)
+        )
+        .setAction(Intent.ACTION_DEFAULT)
+        .putExtra(IntentConsts.INTENT_KEY_APP_NAME, SubmitUtil.getSecondaryAppName(getAppName()));
+
+    startActivity(i);
+  }
+
+  private void startPeerTransferActivity() {
+    Intent i = new Intent(this, PeerTransferActivity.class);
+    startActivityForResult(i, MainActivity.PEER_SYNC_ACTIVITY_CODE);
+  }
+
+  private void startAboutMenuFragment() {
+    getSupportFragmentManager()
+        .beginTransaction()
+        .replace(R.id.main_content, new AboutMenuFragment())
+        .addToBackStack(null)
+        .commit();
   }
 }
