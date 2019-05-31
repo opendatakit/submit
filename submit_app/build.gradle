@@ -21,13 +21,13 @@ android {
     buildToolsVersion(buildTools)
 
     defaultConfig {
-        applicationId(groupId + '.submit') // TODO: move this name to gradle-config
+        applicationId(groupId + submitName)
         minSdkVersion(minVersion)
         targetSdkVersion(targetVersion)
         versionCode(releaseVersionCode)
         versionName(versionCodeName)
 
-        testApplicationId(groupId + '.submit' + testNameSuffix)
+        testApplicationId(groupId + submitName + testNameSuffix)
         testInstrumentationRunner(instrumentationRunner)
 
         vectorDrawables.useSupportLibrary = true
