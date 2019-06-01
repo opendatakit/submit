@@ -1,0 +1,71 @@
+<resources>
+    <string name="app_name">ODK-X Submit</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="nav_menu_finalize">Finalize</string>
+    <string name="nav_menu_find_peers">Find Peers</string>
+    <string name="nav_menu_peer_transfer">Peer Transfer</string>
+    <string name="nav_menu_preferences">Preferences</string>
+    <string name="nav_menu_peer_sync">Peer Sync</string>
+    <string name="nav_menu_about">About</string>
+    <string name="nav_menu_sync_complete">Sync Complete</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_green_peer_sync">GreenPeerSyncActivity</string>
+    <string name="resolve_table_list_conflicts">%d Conflict(s)</string>
+    <string name="resolve_row_select">Select</string>
+    <string name="resolve_conflict_selected">Resolved</string>
+    <string name="resolve_conflict_selected_failed">Failed to Resolve</string>
+    <string name="title_activity_peer_transfer">Peer Transfer</string>
+    <string name="available_peer_list_title">Available Peers:</string>
+    <string name="connected_peer_list_title">Connected Peers:</string>
+    <string name="database_unavailable">Database Unavailable</string>
+    <string name="no_conflict">No Conflicts found</string>
+    <string name="resolve_table_local_sync">Prepare: Copy staging database</string>
+    <string name="final_local_sync">Complete: Copy staging database</string>
+    <string name="launch_peer_transfer">Launch Peer Transfer</string>
+    <string name="wifi_direct_unsupported">Your device does not support Wi-Fi Direct</string>
+
+    <!-- Welcome Fragment -->
+    <string name="welcome_text">Offline P2P sync</string>
+    <string name="launch_prepare_data">Prepare data: Check for Conflicts</string>
+
+    <!-- Syncing -->
+    <string name="sync_starting">Starting sync&#8230;</string>
+    <string name="sync_in_progress">Syncing in progress&#8230;</string>
+    <string name="sync_app_level_files">Syncing application configuration&#8230;</string>
+    <string name="sync_table_level_files">Syncing table and form configuration&#8230;</string>
+    <string name="sync_row_data">Syncing data&#8230;</string>
+    <string name="sync_communications_error">A communications error occurred</string>
+    <string name="sync_device_internal_error">An internal error occurred</string>
+    <string name="sync_resync_because_config_reset_error">The server config was reset during this sync. Please restart.</string>
+    <string name="sync_user_authorization_failure">User authorization failure</string>
+    <string name="sync_server_configuration_failure">Server configuration failure</string>
+    <string name="sync_device_configuration_failure">Device configuration failure</string>
+    <string name="sync_conflicts_need_resolving">Conflicts detected</string>
+    <string name="sync_conflicts_text">Other users have modified the same entries that you have.\nYou now will be directed to merge your changes with theirs.</string>
+    <string name="sync_successful">Sync successful</string>
+    <string name="sync_successful_text">Success! Your application content (data and configuration) matches that on the server.</string>
+    <string name="sync_complete_pending_attachments">Sync (without attachments) successful</string>
+    <string name="sync_complete_pending_attachments_text">Configuration and data have been sync\'d, but not all attachments have been sync\'d. Most common reasons include:\n\t-You or another user elected not to fully sync attachments\n\t-There was a problem transferring the files</string>
+    <string name="sync_status_network_transport_error">Network Error.\nPlease verify your device browser can access your server.</string>
+    <string name="sync_status_device_internal_error">Internal Error.\nPlease submit a bug report</string>
+    <string name="sync_status_authentication_error">Authentication Error.\nPlease verify your
+        username/password or your account access.</string>
+    <string name="sync_status_internal_server_error">Internal Server Error (out of quota?).\nPlease notify your server administrator.</string>
+    <string name="sync_status_bad_gateway_or_client_config">WiFi Gateway or Configuration Error.\nPlease verify the server URL and that your device browser can access your server.</string>
+    <string name="sync_status_request_or_protocol_error">Protocol Error.\nPlease verify that the server and device are compatible.</string>
+    <string name="sync_status_appname_not_supported_by_server">Server is not configured for this appName.\nPlease verify server configuration.</string>
+    <string name="sync_status_server_missing_config_files">Server does not have all app-level or table-level configuration for this APK version.\nDid you intend to reset the server?</string>
+    <string name="sync_status_server_reset_failed_device_has_no_config_files">Device does not have any configuration.\nDid you intend to sync to server?</string>
+    <string name="sync_status_resync_because_config_has_been_reset_error">The app server has been reset since the last time you synced, and the schema has changed. The sync has been aborted.</string>
+
+</resources>
