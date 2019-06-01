@@ -13,7 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.opendatakit.consts.IntentConsts;
-import org.opendatakit.database.service.AidlDbInterface;
+import org.opendatakit.database.service.IDbInterface;
 import org.opendatakit.database.service.DbHandle;
 import org.opendatakit.database.service.InternalUserDbInterfaceAidlWrapperImpl;
 import org.opendatakit.database.service.UserDbInterface;
@@ -108,7 +108,7 @@ abstract class OdkDatabaseTestAbstractBase {
             }
          }
          dbInterface = new UserDbInterfaceImpl(
-             new InternalUserDbInterfaceAidlWrapperImpl(AidlDbInterface.Stub.asInterface(service)));
+             new InternalUserDbInterfaceAidlWrapperImpl(IDbInterface.Stub.asInterface(service)));
       } catch (IllegalArgumentException e) {
          dbInterface = null;
       }

@@ -116,16 +116,6 @@ public class PeerSyncItTest extends AbstractSyncItTest {
     }
   }
 
-  @Override
-  protected void cleanDir() throws IOException {
-//    super.cleanDir();
-  }
-
-  @Override
-  protected void checkAndCreateDir() {
-    super.checkAndCreateDir();
-  }
-
   @Test
   public void emptyLocal() throws ServicesAvailabilityException, ActionNotAuthorizedException, RemoteException, InterruptedException, IOException {
     createTables(PRIMARY_APP_NAME);
