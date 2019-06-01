@@ -74,9 +74,7 @@ public class PeerSyncServerTest {
   public void tearDown() throws Exception {
     FileUtils.deleteDirectory(new File(ODKFileUtils.getAppFolder(TEST_SUBMIT_APP_NAME)));
 
-    if (server != null) {
-      server.stop();
-    }
+    server.stop();
   }
 
   @Test
@@ -225,7 +223,7 @@ public class PeerSyncServerTest {
     HttpUrl url = address
         .newBuilder()
         .addPathSegment(PeerServerConsts.GET_TABLES_PATH)
-        .addQueryParameter(PeerServerConsts.APP_NAME_QUERY, "default")
+        .addQueryParameter(PeerServerConsts.APP_NAME_QUERY, TEST_SUBMIT_APP_NAME)
         .build();
 
     Request request = new Request.Builder()

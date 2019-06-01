@@ -22,6 +22,7 @@ import org.opendatakit.aggregate.odktables.rest.entity.UserInfo;
 import org.opendatakit.consts.IntentConsts;
 import org.opendatakit.exception.ServicesAvailabilityException;
 import org.opendatakit.submit.consts.SubmitColumns;
+import org.opendatakit.submit.consts.SubmitSyncStates;
 import org.opendatakit.submit.service.AbstractAidlSynchronizerTest;
 import org.opendatakit.sync.service.entity.ParcelableColumn;
 import org.opendatakit.sync.service.entity.ParcelableRowResourceList;
@@ -213,10 +214,10 @@ public class LocalAidlSynchronizerTest extends AbstractAidlSynchronizerTest {
                 new DataKeyValue("column1_1", "value1_1"),
                 new DataKeyValue("column1_2", "value1_2"),
                 new DataKeyValue("column1_3", "value1_3"),
-                new DataKeyValue(SubmitColumns.DEVICE_ID, null),
-                new DataKeyValue(SubmitColumns.P_ID, null),
-                new DataKeyValue(SubmitColumns.P_STATE, null),
-                new DataKeyValue(SubmitColumns.TRANSFER_ID, null)
+                new DataKeyValue(SubmitColumns.DEVICE_ID, ""),
+                new DataKeyValue(SubmitColumns.P_ID, "row_1_1"),
+                new DataKeyValue(SubmitColumns.P_STATE, SubmitSyncStates.P_MODIFIED),
+                new DataKeyValue(SubmitColumns.TRANSFER_ID, "")
             )
         )
     );

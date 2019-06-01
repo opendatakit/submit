@@ -119,17 +119,15 @@ public class PeerAidlSynchronizerTest extends AbstractAidlSynchronizerTest {
     stopServer();
   }
 
-  public void startServer() throws IOException {
+  private void startServer() throws IOException {
     assertNotNull(peerSyncServer);
 
     peerSyncServer.stop();
     peerSyncServer.start();
   }
 
-  public void stopServer() {
-    if (peerSyncServer != null) {
-      peerSyncServer.stop();
-    }
+  private void stopServer() {
+    peerSyncServer.stop();
   }
 
   @Override

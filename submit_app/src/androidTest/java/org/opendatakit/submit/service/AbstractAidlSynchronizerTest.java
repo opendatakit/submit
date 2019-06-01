@@ -14,7 +14,7 @@ import org.opendatakit.aggregate.odktables.rest.ElementDataType;
 import org.opendatakit.aggregate.odktables.rest.entity.Column;
 import org.opendatakit.consts.IntentConsts;
 import org.opendatakit.database.data.ColumnList;
-import org.opendatakit.database.service.AidlDbInterface;
+import org.opendatakit.database.service.IDbInterface;
 import org.opendatakit.database.service.DbHandle;
 import org.opendatakit.database.service.InternalUserDbInterfaceAidlWrapperImpl;
 import org.opendatakit.database.service.UserDbInterface;
@@ -57,6 +57,7 @@ public abstract class AbstractAidlSynchronizerTest {
 
   @Before
   public void setUp() throws Exception {
+    cleanDir();
     checkAndCreateDir();
     bindToDb();
     openAppDb();
@@ -97,7 +98,7 @@ public abstract class AbstractAidlSynchronizerTest {
     );
 
     dbInterface = new UserDbInterfaceImpl(
-        new InternalUserDbInterfaceAidlWrapperImpl(AidlDbInterface.Stub.asInterface(dbBinder)));
+        new InternalUserDbInterfaceAidlWrapperImpl(IDbInterface.Stub.asInterface(dbBinder)));
     assertNotNull(dbInterface);
   }
 
@@ -114,15 +115,16 @@ public abstract class AbstractAidlSynchronizerTest {
 
   protected void closeAppDb() throws ServicesAvailabilityException {
     for (String appName : getTestAppNames()) {
-      if (getDbHandle(appName) != null) {
-        getDb().closeDatabase(appName, getDbHandle(appName));
-      }
+      getDb().closeDatabase(appName, getDbHandle(appName));
     }
   }
 
   protected void cleanDir() throws IOException {
     for (String appName : getTestAppNames()) {
-      FileUtils.deleteDirectory(new File(ODKFileUtils.getAppFolder(appName)));
+      File directory = new File(ODKFileUtils.getAppFolder(appName));
+
+      FileUtils.deleteDirectory(directory);
+      assertFalse(directory.exists());
     }
   }
 

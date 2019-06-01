@@ -14,7 +14,7 @@ import org.opendatakit.properties.CommonToolProperties;
 import org.opendatakit.properties.PropertiesSingleton;
 import org.opendatakit.submit.service.peer.PeerSyncServerService;
 import org.opendatakit.submit.service.peer.server.PeerSyncServer;
-import org.opendatakit.sync.service.OdkSyncServiceInterface;
+import org.opendatakit.sync.service.IOdkSyncServiceInterface;
 
 import java.util.Collections;
 import java.util.concurrent.TimeoutException;
@@ -30,10 +30,10 @@ public abstract class AbstractSyncItTest extends AbstractAidlSynchronizerTest {
   @Rule
   public final ServiceTestRule syncServerRule = new ServiceTestRule();
 
-  private OdkSyncServiceInterface syncServiceInterface;
+  private IOdkSyncServiceInterface syncServiceInterface;
   private PeerSyncServer peerSyncServer;
 
-  protected OdkSyncServiceInterface getSyncService() {
+  protected IOdkSyncServiceInterface getSyncService() {
     return syncServiceInterface;
   }
 
@@ -66,7 +66,7 @@ public abstract class AbstractSyncItTest extends AbstractAidlSynchronizerTest {
             IntentConsts.Sync.SYNC_SERVICE_CLASS
         ));
 
-    syncServiceInterface = OdkSyncServiceInterface.Stub.asInterface(binder);
+    syncServiceInterface = IOdkSyncServiceInterface.Stub.asInterface(binder);
     assertNotNull(syncServiceInterface);
   }
 
