@@ -1,6 +1,6 @@
 package org.opendatakit.submit.util;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.opendatakit.submit.consts.SubmitConsts;
 

@@ -1,6 +1,6 @@
 package org.opendatakit.submit.service;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 import org.opendatakit.submit.R;
 import org.opendatakit.submit.activities.PeerTransferActivity;
 
-import java.util.Map;
 import java.util.List;
 
 public class AvailablePeerAdapter extends RecyclerView.Adapter<AvailablePeerAdapter.ViewHolder> {
