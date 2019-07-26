@@ -3,16 +3,14 @@ package org.opendatakit.submit.service.peer;
 import android.Manifest;
 import android.content.ContentValues;
 import android.os.RemoteException;
-import android.support.test.filters.LargeTest;
-import android.support.test.rule.GrantPermissionRule;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opendatakit.aggregate.odktables.rest.SyncState;
 import org.opendatakit.database.data.OrderedColumns;
-import org.opendatakit.database.service.DbHandle;
 import org.opendatakit.exception.ActionNotAuthorizedException;
 import org.opendatakit.exception.ServicesAvailabilityException;
 import org.opendatakit.provider.DataTableColumns;
@@ -26,13 +24,11 @@ import org.opendatakit.sync.service.SyncStatus;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 
-@RunWith(AndroidJUnit4.class)
+
 @LargeTest
 public class PeerSyncItTest extends AbstractSyncItTest {
   private static final String TAG = PeerSyncItTest.class.getSimpleName();

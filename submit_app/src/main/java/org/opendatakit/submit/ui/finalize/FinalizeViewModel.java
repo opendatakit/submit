@@ -1,8 +1,8 @@
 package org.opendatakit.submit.ui.finalize;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 public class FinalizeViewModel extends ViewModel {
   private MutableLiveData<String> status;

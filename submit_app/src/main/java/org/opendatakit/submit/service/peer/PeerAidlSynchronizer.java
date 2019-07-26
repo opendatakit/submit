@@ -3,7 +3,7 @@ package org.opendatakit.submit.service.peer;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
