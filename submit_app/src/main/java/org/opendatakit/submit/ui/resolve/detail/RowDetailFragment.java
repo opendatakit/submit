@@ -176,7 +176,7 @@ public class RowDetailFragment extends AbsBaseFragment implements OnClickListene
       public void onClick(View v) {
         boolean succeeded = deleteRowsExcept(item.getRawStringByKey(DataTableColumns.ID));
 
-        requireFragmentManager().popBackStack();
+        getParentFragmentManager().popBackStack();
         Snackbar
             .make(
                 getView(),

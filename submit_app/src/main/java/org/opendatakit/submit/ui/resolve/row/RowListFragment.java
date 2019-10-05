@@ -78,7 +78,7 @@ public class RowListFragment extends AbsBaseFragment implements OnClickListenerH
 
         // no more conflicts in this table
         if (conflictingRows == null || conflictingRows.isEmpty()) {
-          requireFragmentManager().popBackStack();
+          getParentFragmentManager().popBackStack();
         }
       }
     });
@@ -102,7 +102,7 @@ public class RowListFragment extends AbsBaseFragment implements OnClickListenerH
     return new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        requireFragmentManager()
+        getParentFragmentManager()
             .beginTransaction()
             .replace(
                 R.id.main_content,
