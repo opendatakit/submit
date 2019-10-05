@@ -163,7 +163,7 @@ public class TableListFragment extends AbsBaseFragment
 
   @Override
   public void onPause() {
-    msgManager.clearDialogsAndRetainCurrentState(getFragmentManager());
+    msgManager.clearDialogsAndRetainCurrentState(getParentFragmentManager());
 
     super.onPause();
   }
@@ -212,7 +212,7 @@ public class TableListFragment extends AbsBaseFragment
     return new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        requireFragmentManager()
+        getParentFragmentManager()
             .beginTransaction()
             .replace(R.id.main_content, RowListFragment.newInstance(item.getId()))
             .addToBackStack(null)
@@ -285,7 +285,7 @@ public class TableListFragment extends AbsBaseFragment
         @Override
         public void run() {
           // TODO: Put strings in xml
-          msgManager.createProgressDialog("Copying", "Initiating file copy", getFragmentManager());
+          msgManager.createProgressDialog("Copying", "Initiating file copy", getParentFragmentManager());
         }
       });
 
@@ -368,14 +368,14 @@ public class TableListFragment extends AbsBaseFragment
           message = "Copying files";
       }
 
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.createProgressDialog("Copying", message, fm);
       fm.executePendingTransactions();
       msgManager.updateProgressDialogMessage(message, event.curProgressBar, event.maxProgressBar, fm);
 
       handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
     } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.SYNC_COMPLETE || status == SyncStatus.NONE)) {
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
 
@@ -405,7 +405,7 @@ public class TableListFragment extends AbsBaseFragment
         || status == SyncStatus.SERVER_INTERNAL_ERROR || status == SyncStatus.SERVER_IS_NOT_ODK_SERVER ||
         status == SyncStatus.SERVER_MISSING_CONFIG_FILES )) {
 
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
 
@@ -429,7 +429,7 @@ public class TableListFragment extends AbsBaseFragment
   }
 
   private void resetDialogAndStateMachine() {
-    msgManager.dismissAlertDialog(getFragmentManager());
+    msgManager.dismissAlertDialog(getParentFragmentManager());
     syncAction = SyncActions.IDLE;
     enableButtons();
   }
