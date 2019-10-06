@@ -1,9 +1,9 @@
 package org.opendatakit.submit.ui.resolve.table;
 
 import android.app.Application;
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import org.opendatakit.database.data.BaseTable;

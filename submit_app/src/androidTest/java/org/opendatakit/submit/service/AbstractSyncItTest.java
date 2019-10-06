@@ -2,8 +2,8 @@ package org.opendatakit.submit.service;
 
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ServiceTestRule;
+import androidx.test.InstrumentationRegistry;
+import androidx.test.rule.ServiceTestRule;
 import android.util.Log;
 
 import org.junit.After;

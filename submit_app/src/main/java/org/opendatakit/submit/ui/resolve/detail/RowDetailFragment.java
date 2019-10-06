@@ -1,16 +1,16 @@
 package org.opendatakit.submit.ui.resolve.detail;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import android.content.ContentValues;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -176,7 +176,7 @@ public class RowDetailFragment extends AbsBaseFragment implements OnClickListene
       public void onClick(View v) {
         boolean succeeded = deleteRowsExcept(item.getRawStringByKey(DataTableColumns.ID));
 
-        requireFragmentManager().popBackStack();
+        getParentFragmentManager().popBackStack();
         Snackbar
             .make(
                 getView(),
