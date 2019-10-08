@@ -1,15 +1,11 @@
 package org.opendatakit.submit.util;
 
 import android.net.Uri;
-import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@RunWith(AndroidJUnit4.class)
 public class PeerSyncUtilTest {
   private static final String TAG = PeerSyncUtilTest.class.getSimpleName();
 

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package opendatakit.org.submit;
+package org.opendatakit.submit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
-import android.support.test.annotation.Beta;
-import android.support.test.runner.permission.PermissionRequester;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+import androidx.test.annotation.Beta;
+import androidx.test.runner.permission.PermissionRequester;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import static android.support.test.internal.util.Checks.checkNotNull;
+import static androidx.test.internal.util.Checks.checkNotNull;
 
 /**
  * The {@code GrantPermissionRule} Rule allows granting of runtime permissions on Android M (API 23)
@@ -72,7 +72,7 @@ public class GrantPermissionRule implements TestRule {
      * any test method execution.
      *
      * @param permissions a variable list of Android permissions
-     * @return {@link android.support.test.rule.GrantPermissionRule}
+     * @return {@link androidx.test.rule.GrantPermissionRule}
      * @see android.Manifest.permission
      */
     public static GrantPermissionRule grant(String... permissions) {

@@ -1,14 +1,14 @@
 package org.opendatakit.submit.ui.resolve.row;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,7 +78,7 @@ public class RowListFragment extends AbsBaseFragment implements OnClickListenerH
 
         // no more conflicts in this table
         if (conflictingRows == null || conflictingRows.isEmpty()) {
-          requireFragmentManager().popBackStack();
+          getParentFragmentManager().popBackStack();
         }
       }
     });
@@ -102,7 +102,7 @@ public class RowListFragment extends AbsBaseFragment implements OnClickListenerH
     return new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        requireFragmentManager()
+        getParentFragmentManager()
             .beginTransaction()
             .replace(
                 R.id.main_content,

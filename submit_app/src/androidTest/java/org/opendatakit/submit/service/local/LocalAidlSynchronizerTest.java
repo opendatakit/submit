@@ -4,16 +4,15 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.test.filters.LargeTest;
-import android.support.test.rule.GrantPermissionRule;
-import android.support.test.rule.ServiceTestRule;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
+import androidx.test.rule.ServiceTestRule;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opendatakit.aggregate.odktables.rest.entity.Column;
 import org.opendatakit.aggregate.odktables.rest.entity.DataKeyValue;
 import org.opendatakit.aggregate.odktables.rest.entity.RowResource;
@@ -31,15 +30,22 @@ import org.opendatakit.sync.service.entity.ParcelableTableResourceList;
 import org.opendatakit.sync.service.logic.IAidlSynchronizer;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import static org.opendatakit.submit.matcher.TableResourceMatchers.*;
-import static org.opendatakit.submit.matcher.TableDefinitionResourceMatchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.emptyCollectionOf;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.opendatakit.submit.matcher.TableDefinitionResourceMatchers.hasColumn;
+import static org.opendatakit.submit.matcher.TableDefinitionResourceMatchers.hasNColumns;
+import static org.opendatakit.submit.matcher.TableDefinitionResourceMatchers.hasSubmitColumns;
+import static org.opendatakit.submit.matcher.TableResourceMatchers.hasDefinitionUri;
+import static org.opendatakit.submit.matcher.TableResourceMatchers.hasSchemaETag;
+import static org.opendatakit.submit.matcher.TableResourceMatchers.hasTableId;
 
-@RunWith(AndroidJUnit4.class)
+
 @LargeTest
 public class LocalAidlSynchronizerTest extends AbstractAidlSynchronizerTest {
   private static final String TAG = LocalAidlSynchronizerTest.class.getSimpleName();

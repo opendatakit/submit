@@ -3,11 +3,11 @@ package org.opendatakit.submit.service.peer;
 import android.Manifest;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.LargeTest;
-import android.support.test.rule.GrantPermissionRule;
-import android.support.test.rule.ServiceTestRule;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
+import androidx.test.rule.ServiceTestRule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,7 +16,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opendatakit.aggregate.odktables.rest.entity.TableResourceList;
 import org.opendatakit.submit.consts.PeerServerConsts;
 import org.opendatakit.submit.service.peer.server.PeerSyncServer;
@@ -30,9 +29,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-@RunWith(AndroidJUnit4.class)
+
 @LargeTest
 public class PeerSyncServerTest {
   private static final String TAG = PeerSyncServerTest.class.getSimpleName();

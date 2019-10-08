@@ -3,7 +3,7 @@ package org.opendatakit.submit.service;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.test.rule.ServiceTestRule;
+import androidx.test.rule.ServiceTestRule;
 import android.util.Log;
 
 import org.apache.commons.io.FileUtils;

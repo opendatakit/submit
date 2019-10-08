@@ -1,9 +1,9 @@
 package org.opendatakit.submit.ui.common;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.opendatakit.application.CommonApplication;
 import org.opendatakit.database.service.UserDbInterface;

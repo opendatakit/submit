@@ -1,13 +1,12 @@
-package opendatakit.org.submit;
+package org.opendatakit.submit;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.test.InstrumentationRegistry;
-import opendatakit.org.submit.GrantPermissionRule;
-import opendatakit.org.submit.ODKServiceTestRule;
+import androidx.annotation.Nullable;
+import androidx.test.InstrumentationRegistry;
+
 import android.util.Log;
 import org.junit.After;
 import org.junit.Before;

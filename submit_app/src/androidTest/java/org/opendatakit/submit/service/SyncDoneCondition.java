@@ -1,6 +1,6 @@
 package org.opendatakit.submit.service;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.opendatakit.sync.service.IOdkSyncServiceInterface;
 import org.opendatakit.sync.service.SyncStatus;

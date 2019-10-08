@@ -1,7 +1,7 @@
 package org.opendatakit.submit.ui.resolve.detail;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class ColumnValuePair {
   private final String column;

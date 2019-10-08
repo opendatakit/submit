@@ -1,8 +1,8 @@
 package org.opendatakit.submit.ui.resolve.table;
 
 import android.app.AlertDialog;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,13 +12,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -163,7 +163,7 @@ public class TableListFragment extends AbsBaseFragment
 
   @Override
   public void onPause() {
-    msgManager.clearDialogsAndRetainCurrentState(getFragmentManager());
+    msgManager.clearDialogsAndRetainCurrentState(getParentFragmentManager());
 
     super.onPause();
   }
@@ -212,7 +212,7 @@ public class TableListFragment extends AbsBaseFragment
     return new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        requireFragmentManager()
+        getParentFragmentManager()
             .beginTransaction()
             .replace(R.id.main_content, RowListFragment.newInstance(item.getId()))
             .addToBackStack(null)
@@ -285,7 +285,7 @@ public class TableListFragment extends AbsBaseFragment
         @Override
         public void run() {
           // TODO: Put strings in xml
-          msgManager.createProgressDialog("Copying", "Initiating file copy", getFragmentManager());
+          msgManager.createProgressDialog("Copying", "Initiating file copy", getParentFragmentManager());
         }
       });
 
@@ -368,14 +368,14 @@ public class TableListFragment extends AbsBaseFragment
           message = "Copying files";
       }
 
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.createProgressDialog("Copying", message, fm);
       fm.executePendingTransactions();
       msgManager.updateProgressDialogMessage(message, event.curProgressBar, event.maxProgressBar, fm);
 
       handler.postDelayed(new Runnable() {@Override public void run() { monitorProgress(); }}, 100);
     } else if (syncAction == SyncActions.MONITOR_SYNCING && (status == SyncStatus.SYNC_COMPLETE || status == SyncStatus.NONE)) {
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
 
@@ -405,7 +405,7 @@ public class TableListFragment extends AbsBaseFragment
         || status == SyncStatus.SERVER_INTERNAL_ERROR || status == SyncStatus.SERVER_IS_NOT_ODK_SERVER ||
         status == SyncStatus.SERVER_MISSING_CONFIG_FILES )) {
 
-      FragmentManager fm =  getFragmentManager();
+      FragmentManager fm =  getParentFragmentManager();
       msgManager.clearDialogsAndRetainCurrentState(fm);
       fm.executePendingTransactions();
 
@@ -429,7 +429,7 @@ public class TableListFragment extends AbsBaseFragment
   }
 
   private void resetDialogAndStateMachine() {
-    msgManager.dismissAlertDialog(getFragmentManager());
+    msgManager.dismissAlertDialog(getParentFragmentManager());
     syncAction = SyncActions.IDLE;
     enableButtons();
   }
